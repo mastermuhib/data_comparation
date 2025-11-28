@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class TeacherStudiesRelation extends Migration
+class AddTableSteps extends Migration
 {
     /**
      * Run the migrations.
@@ -14,13 +14,14 @@ class TeacherStudiesRelation extends Migration
     public function up()
     {
         DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-        Schema::create('teacher_study_relations', function (Blueprint $table) {
+        Schema::create('t_steps', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('id_study')->nullable();
-            $table->uuid('id_teacher')->nullable();
+            $table->string('name')->nullable();
+            $table->tinyInteger('month')->nullable();
+            $table->integer('year')->nullable();
             $table->timestamps();
         });
-        DB::statement('ALTER TABLE teacher_study_relations ALTER COLUMN id SET DEFAULT uuid_generate_v4();');
+        DB::statement('ALTER TABLE t_steps ALTER COLUMN id SET DEFAULT uuid_generate_v4();');
     }
 
     /**
@@ -30,6 +31,6 @@ class TeacherStudiesRelation extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('teacher_study_relations');
+        Schema::dropIfExists('t_steps');
     }
 }

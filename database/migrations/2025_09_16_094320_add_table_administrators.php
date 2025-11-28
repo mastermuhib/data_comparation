@@ -27,7 +27,7 @@ class AddTableAdministrators extends Migration
             $table->text('address')->nullable();
             $table->timestamps();
         });
-         DB::statement('ALTER TABLE administrators ALTER COLUMN id SET DEFAULT uuid_generate_v4();');
+        DB::statement('ALTER TABLE administrators ALTER COLUMN id SET DEFAULT uuid_generate_v4();');
     }
 
     /**

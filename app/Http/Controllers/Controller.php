@@ -35,6 +35,7 @@ class Controller extends BaseController
         $arrayURL = explode("/",$currentURL);
         $jumlah = count($arrayURL);
         //dd($jumlah);
+        dd(Auth::guard('admin')->user());
         $role_id         = Auth::guard('admin')->user()->id_role;
         $id_admin         = Auth::guard('admin')->user()->id;
         $data['id_admin'] = $id_admin;
@@ -232,8 +233,7 @@ class Controller extends BaseController
             'line_error' => $data['line'],
             'controller' => $data['controller'],
             'id_user'    => $id_o,
-            'tipe_user' => 2,
-        );
+            );
         $insert = LogError::insertGetId($data_insert);
         return $insert;
     }
