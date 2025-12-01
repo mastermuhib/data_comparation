@@ -35,14 +35,10 @@ class Controller extends BaseController
         $arrayURL = explode("/",$currentURL);
         $jumlah = count($arrayURL);
         //dd($jumlah);
-        dd(Auth::guard('admin')->user());
+        //dd(Auth::guard('admin')->user());
         $role_id         = Auth::guard('admin')->user()->id_role;
         $id_admin         = Auth::guard('admin')->user()->id;
         $data['id_admin'] = $id_admin;
-        $data['id_cabang'] = Auth::guard('admin')->user()->id_cabang;
-        $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
-
-
         if ($jumlah == 3) {
             $id_submenu = DB::table('menus')->where('slug','dashboard')->pluck('id');
         } else if ($jumlah == 4) {
@@ -96,9 +92,6 @@ class Controller extends BaseController
         $data['akses'] = $validasi;
         //dd($data);
 
-        //dd($data['data_chat']);
-        //$data['jumlah_data_chat'] = count($data_chat);
-        // dd($validasi);
         return $data;
     }
 

@@ -4,7 +4,7 @@
 	<!--begin::Head-->
 	<head><base href="../../../">
 		<meta charset="utf-8" />
-		<title>IPEKA UKS | Login CMS</title>
+		<title>Pengelola DPT | Login CMS</title>
 		<meta name="description" content="Login" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 		<!--begin::Fonts-->
@@ -46,10 +46,10 @@
                     <div class="col-md-8 col-lg-6 col-xl-5">
                         <div class="text-center mb-4">
                             <a href="index.html" class="auth-logo mb-5 d-block">
-                                <img src="{{URL::asset('assets')}}/images/ipeka.png" alt="" height="200" class="logo logo-dark">  
+                                <img src="{{URL::asset('assets')}}/images/logo.png" alt="" height="200" class="logo logo-dark">  
                             </a>
                             <h4>Sign in</h4>
-                            <p class="text-muted mb-4">Sign in to continue to IPEKA UKS Admin.</p>  
+                            <p class="text-muted mb-4">Sign in to Pengelola Data DPT.</p>  
                         </div>
                         <div class="card">
                             <div class="card-body p-4">

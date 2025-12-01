@@ -38,7 +38,6 @@ class DashboardController extends Controller
             $data['start'] = $end;
             // $data['start'] = date('Y-m-d',strtotime('-1 day',strtotime($end)));
             $data['end'] = $end;
-            $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
             $data['header_name'] = '<span>Dashboard</span> <input type="month" id="bdaymonth" name="bdaymonth" class="form-control ml-40" onchange="ChangeDashboard()" value="'.date('Y-m').'" style="margin-top: -30px;">';
             // bisnis
               

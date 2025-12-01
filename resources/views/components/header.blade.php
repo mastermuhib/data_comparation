@@ -29,10 +29,8 @@
                     @if(Request::is('dashboard'))
                     <div style="margin-left: 150px; margin-top: 10px;">
                     <select class="select2 form-control" onchange="ChangeDashboard()" id="id_scholl" name="id_scholl"  required>
-                        <option value="">--pilih--</option>
-                        @foreach($data_scholl as $ct)
-                        <option value="{{$ct->id}}">{{$ct->scholl_name}}</option>
-                        @endforeach
+                        <option value=""></option>
+                        
                     </select>
                     </div>
                     @endif

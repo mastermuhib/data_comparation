@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Model\RoleModel;
-use App\Model\StudentModel;
+use App\Model\dptModel;
 use App\Model\SchollModel;
 use App\Model\CityModel;
 use App\Model\UserModel;
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Exceptions\Handler;
 
-class StudentController extends Controller
+class DptTemporaryController extends Controller
 {
     public function index()
     {
@@ -33,13 +33,13 @@ class StudentController extends Controller
                 $data['txt_button'] = "Tambah Siswa Baru";
                 $data['href'] = "user/siswa/action/add";
                 //dd($data['id_adm_dept']);
-                return view('student.index', $data);
+                return view('dpt.index', $data);
             }
         } catch (\Exception $e) {
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@index';
+            $data['controller'] = 'DptTemporaryController@index';
             $insert_error = parent::InsertErrorSystem($data);
             $error = parent::sidebar();
             $error['id'] = $insert_error;
@@ -60,13 +60,13 @@ class StudentController extends Controller
                 $role_id           = Auth::guard('admin')->user()->id_role;
                 $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
                 //dd($data['id_adm_dept']);
-                return view('student.import', $data);
+                return view('dpt.import', $data);
             }
         } catch (\Exception $e) {
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@import';
+            $data['controller'] = 'DptTemporaryController@import';
             $insert_error = parent::InsertErrorSystem($data);
             $error = parent::sidebar();
             $error['id'] = $insert_error;
@@ -81,6 +81,7 @@ class StudentController extends Controller
             
             $csvMimes = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain','csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-excel');
             //dd($_FILES);
+            //str_replace("#", "", $originalString);
             
             if(empty($_FILES['file']['name'])) {
                 $data['code']    = 500;
@@ -89,9 +90,9 @@ class StudentController extends Controller
                 if(in_array($_FILES['file']['type'],$csvMimes)){
                     if(is_uploaded_file($_FILES['file']['tmp_name'])){ 
                         // check file size
-                        if(filesize($_FILES['file']['tmp_name']) > 51200000000) {
+                        if(filesize($_FILES['file']['tmp_name']) > 51200000000000000) {
                             $data['code']    = 500;
-                            $data['message'] = "File Maksimal 50 Mb";
+                            $data['message'] = "File Maksimal 500 Mb";
                         } else {
                             //open uploaded csv file with read only mode
                             $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
@@ -117,27 +118,27 @@ class StudentController extends Controller
                                     $gender = 2;
                                 }
 
-                                $cek_student = DB::table('students')->where('student_name',$line[0])->where('active_class_id',$id_class)->pluck('id');
-                                if ($cek_student->isEmpty()) {
+                                $cek_dpt = DB::table('dpts')->where('dpt_name',$line[0])->where('active_class_id',$id_class)->pluck('id');
+                                if ($cek_dpt->isEmpty()) {
                                     
-                                    $insert_student = array(
-                                        'student_name' => $line[0],
+                                    $insert_dpt = array(
+                                        'dpt_name' => $line[0],
                                         'active_class_id' => $id_class,
                                         'gender' => $gender,
                                         'created_at' => date('Y-m-d H:i:s'),
                                         'updated_at' => date('Y-m-d H:i:s'),
                                     );
-                                    $id_student = DB::table('students')->insertGetId($insert_student);
+                                    $id_dpt = DB::table('dpts')->insertGetId($insert_dpt);
                                    // }
-                                   // relasi siswa kelas student_class_relations
+                                   // relasi siswa kelas dpt_class_relations
                                     $insert_rel = array(
-                                        'id_student' => $id_student,
+                                        'id_dpt' => $id_dpt,
                                         'id_class' => $id_class,
                                         'tgl_masuk' => date('Y-m-d'),
                                         'created_at' => date('Y-m-d H:i:s'),
                                         'updated_at' => date('Y-m-d H:i:s'),
                                     );
-                                    $insert = DB::table('student_class_relations')->insertGetId($insert_rel);
+                                    $insert = DB::table('dpt_class_relations')->insertGetId($insert_rel);
                                 }
                                
                             }
@@ -172,39 +173,39 @@ class StudentController extends Controller
         $data['is_edit'] = $request->is_edit;
         $data['is_delete'] = $request->is_delete;
         
-        $student = DB::table('students as s')->leftJoin('cities as c','c.id','s.id_city')->where('s.status',1);
+        $dpt = DB::table('dpts as s')->leftJoin('cities as c','c.id','s.id_city')->where('s.status',1);
         if ($request->id_scholl != null) {
-            $relation_scholl = DB::table('student_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_scholl',$request->id_scholl)->pluck('id_student')->toArray();
-            $student = $student->whereIn('s.id',$relation_scholl);
+            $relation_scholl = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_scholl',$request->id_scholl)->pluck('id_dpt')->toArray();
+            $dpt = $dpt->whereIn('s.id',$relation_scholl);
         }
 
         if ($request->id_class != null) {
-            $relation_class = DB::table('student_class_relations as s')->where('s.is_active',1)->where('id_class',$request->id_class)->pluck('id_student')->toArray();
-            $student = $student->whereIn('s.id',$relation_class);
+            $relation_class = DB::table('dpt_class_relations as s')->where('s.is_active',1)->where('id_class',$request->id_class)->pluck('id_dpt')->toArray();
+            $dpt = $dpt->whereIn('s.id',$relation_class);
         }
 
         if ($request->gender != null) {
-            $student = $student->where('gender',$request->gender);
+            $dpt = $dpt->where('gender',$request->gender);
         }
 
         if ($request->search != null) {
-            $student = $student->where(function ($query) use ($request) {
+            $dpt = $dpt->where(function ($query) use ($request) {
                 $search = $request->search;
-                $query->where('student_name','ilike', "%{$search}%");
+                $query->where('dpt_name','ilike', "%{$search}%");
                 $query->orWhere('c.name','ilike', "%{$search}%");
             });
         }
         
         if ($request->sort == 1) {
-            $student = $student->orderBy('s.created_at','desc');
+            $dpt = $dpt->orderBy('s.created_at','desc');
         }
         if ($request->sort == 2) {
-            $student = $student->orderBy('student_name','asc');
+            $dpt = $dpt->orderBy('dpt_name','asc');
         }
         
         
-        $student = $student->limit(9)->offset($request->start)->select('s.*','c.name')->get();
-        $data['data'] = $student;
+        $dpt = $dpt->limit(9)->offset($request->start)->select('s.*','c.name')->get();
+        $data['data'] = $dpt;
         if ($data['data']->isNotEmpty()) {
             foreach ($data['data'] as $k => $v) {
                 //$data['data'][$k]->image = env('BASE_IMG').$v->image;
@@ -219,46 +220,46 @@ class StudentController extends Controller
             }
         }  
 
-        return view('student.data', $data);
+        return view('dpt.data', $data);
     }
 
     public function cek_load_siswa(Request $request)
     {
         
-        $student = DB::table('students as s')->leftJoin('cities as c','c.id','s.id_city')->where('s.status',1);
+        $dpt = DB::table('dpts as s')->leftJoin('cities as c','c.id','s.id_city')->where('s.status',1);
         if ($request->id_scholl != null) {
-            $relation_scholl = DB::table('student_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_scholl',$request->id_scholl)->pluck('id_student')->toArray();
-            $student = $student->whereIn('s.id',$relation_scholl);
+            $relation_scholl = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_scholl',$request->id_scholl)->pluck('id_dpt')->toArray();
+            $dpt = $dpt->whereIn('s.id',$relation_scholl);
         }
 
         if ($request->id_class != null) {
-            $relation_class = DB::table('student_class_relations as s')->where('s.is_active',1)->where('id_class',$request->id_class)->pluck('id_student')->toArray();
-            $student = $student->whereIn('s.id',$relation_class);
+            $relation_class = DB::table('dpt_class_relations as s')->where('s.is_active',1)->where('id_class',$request->id_class)->pluck('id_dpt')->toArray();
+            $dpt = $dpt->whereIn('s.id',$relation_class);
         }
 
         if ($request->gender != null) {
-            $student = $student->where('gender',$request->gender);
+            $dpt = $dpt->where('gender',$request->gender);
         }
 
         if ($request->search != null) {
-            $student = $student->where(function ($query) use ($request) {
+            $dpt = $dpt->where(function ($query) use ($request) {
                 $search = $request->search;
-                $query->where('student_name','ilike', "%{$search}%");
+                $query->where('dpt_name','ilike', "%{$search}%");
                 $query->orWhere('c.name','ilike', "%{$search}%");
             });
         }
         
         if ($request->sort == 1) {
-            $student = $student->orderBy('s.created_at','desc');
+            $dpt = $dpt->orderBy('s.created_at','desc');
         }
         if ($request->sort == 2) {
-            $student = $student->orderBy('student_name','asc');
+            $dpt = $dpt->orderBy('dpt_name','asc');
         }
         
         $data['jumlah'] = 0;
 
-        $student = $student->offset($request->start)->count();
-        if ($student > $request->start) {
+        $dpt = $dpt->offset($request->start)->count();
+        if ($dpt > $request->start) {
             $data['jumlah'] = 1;
         }
 
@@ -269,7 +270,7 @@ class StudentController extends Controller
 
     public function GetScholl($id,$coloumn){
         $return = null;
-        $data = DB::table('student_class_relations as s')->join('table_class as c','c.id','s.id_class')->join('table_scholls as t','t.id','c.id_scholl')->where('s.is_active',1)->where('id_student',$id)->pluck($coloumn);
+        $data = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->join('table_scholls as t','t.id','c.id_scholl')->where('s.is_active',1)->where('id_dpt',$id)->pluck($coloumn);
         if ($data->isNotEmpty()) {
             $return = $data[0];
         }
@@ -278,7 +279,7 @@ class StudentController extends Controller
 
     public function GetClass($id,$coloumn){
         $return = null;
-        $data = DB::table('student_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_student',$id)->pluck($coloumn);
+        $data = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_dpt',$id)->pluck($coloumn);
         if ($data->isNotEmpty()) {
             $return = $data[0];
         }
@@ -296,7 +297,7 @@ class StudentController extends Controller
             $data['data_city'] = CityModel::whereNull('deleted_at')->get();
             $data['header_name'] = "Tambah Siswa Baru";
             //dd($data['id_adm_dept']);
-            return view('student.add', $data);
+            return view('dpt.add', $data);
         }
     }
 
@@ -312,10 +313,10 @@ class StudentController extends Controller
 
             $input['created_at'] = date('Y-m-d H:i:s');
             $input['updated_at'] = date('Y-m-d H:i:s');
-            $insert = DB::table('students')->insertGetId($input);
+            $insert = DB::table('dpts')->insertGetId($input);
             if ($insert) {
-                $insert_class = DB::table('student_class_relations')->insert(['id_student'=>$insert,'id_class'=>$request->id_class,'tgl_masuk'=>$request->tgl_masuk,'description'=>'Siswa Baru','is_active'=>1,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')]);
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menambah Data Siswa '.$request->student_name.'','siswa');
+                $insert_class = DB::table('dpt_class_relations')->insert(['id_dpt'=>$insert,'id_class'=>$request->id_class,'tgl_masuk'=>$request->tgl_masuk,'description'=>'Siswa Baru','is_active'=>1,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')]);
+                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menambah Data Siswa '.$request->dpt_name.'','siswa');
                 $data['code']    = 200;
                 $data['message'] = 'Berhasil menambah data siswa';
                 return response()->json($data);
@@ -328,7 +329,7 @@ class StudentController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@post';
+            $data['controller'] = 'DptTemporaryController@post';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }
@@ -345,14 +346,14 @@ class StudentController extends Controller
             } 
             $data['updated_at'] = date('Y-m-d H:i:s');
 
-            $insert = StudentModel::where('id', $request->id)->update($input);
+            $insert = dptModel::where('id', $request->id)->update($input);
             if ($insert) {
-                $cek_same_class = DB::table('student_class_relations')->where('id_student',$request->id)->where('is_active',1)->pluck('id_class');
+                $cek_same_class = DB::table('dpt_class_relations')->where('id_dpt',$request->id)->where('is_active',1)->pluck('id_class');
                 if ($cek_same_class != $request->id_class) {
-                    $nonactive = DB::table('student_class_relations')->where('id_student',$request->id)->update(['is_active'=>0]);
-                    $insert_class = DB::table('student_class_relations')->insert(['id_student'=>$request->id,'id_class'=>$request->id_class,'tgl_masuk'=>$request->tgl_masuk,'description'=>'Pindah kelas','is_active'=>1,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')]);
+                    $nonactive = DB::table('dpt_class_relations')->where('id_dpt',$request->id)->update(['is_active'=>0]);
+                    $insert_class = DB::table('dpt_class_relations')->insert(['id_dpt'=>$request->id,'id_class'=>$request->id_class,'tgl_masuk'=>$request->tgl_masuk,'description'=>'Pindah kelas','is_active'=>1,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')]);
                 }
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Mengupdate Data Siswa '.$request->student_name.'','kelas');
+                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Mengupdate Data Siswa '.$request->dpt_name.'','kelas');
                 $data['code']    = 200;
                 $data['message'] = 'Berhasil Mengupdate data kelas';
                 return response()->json($data);
@@ -366,7 +367,7 @@ class StudentController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@update';
+            $data['controller'] = 'DptTemporaryController@update';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }
@@ -377,7 +378,7 @@ class StudentController extends Controller
         try {
             $id = base64_decode($ids);
             //dd($id);
-            $admin = StudentModel::find($id);
+            $admin = dptModel::find($id);
             //dd($admin);
             
             $data = parent::sidebar();
@@ -398,13 +399,13 @@ class StudentController extends Controller
                 $data['id_scholl'] = $this->GetScholl($admin->id,'id_scholl');
                 $data['id_class'] = $this->GetClass($admin->id,'id_class');
                 $data['tgl_masuk'] = $this->GetClass($admin->id,'tgl_masuk');
-                return view('student.dialog_edit', $data);
+                return view('dpt.dialog_edit', $data);
             }
         } catch (\Exception $e) {
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@detail';
+            $data['controller'] = 'DptTemporaryController@detail';
             $insert_error = parent::InsertErrorSystem($data);
             $error = parent::sidebar();
             $error['id'] = $insert_error;
@@ -416,13 +417,13 @@ class StudentController extends Controller
     public function nonactive(Request $request)
     {
         try {
-            $admin         = StudentModel::find($request->id);
+            $admin         = dptModel::find($request->id);
             $admin->status = 0;
             $admin->save();
             if ($admin) {
                 $data['code']    = 200;
                 $data['message'] = 'Berhasil Menonaktifkan Data Kelas';
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menon aktifkan Data Kelas '.$admin->student_name.'','Kelas');
+                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menon aktifkan Data Kelas '.$admin->dpt_name.'','Kelas');
                 return response()->json($data);
             } else {
                 $data['code']    = 500;
@@ -433,7 +434,7 @@ class StudentController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@nonactive';
+            $data['controller'] = 'DptTemporaryController@nonactive';
             $insert_error = parent::InsertErrorSystem($data);
             
             return response()->json($data); // jika metode Post
@@ -443,14 +444,14 @@ class StudentController extends Controller
     public function active(Request $request)
     {
         try {
-            $admin         = StudentModel::find($request->id);
+            $admin         = dptModel::find($request->id);
             $admin->status = 1;
             $admin->save();
             if ($admin) {
                 $data['code']    = 200;
                
                 $data['message'] = 'Berhasil Mengapprove Kelas';
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Meng aktifkan Data Kelas '.$admin->student_name.'','Kelas');
+                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Meng aktifkan Data Kelas '.$admin->dpt_name.'','Kelas');
                 return response()->json($data);
             } else {
                 $data['code']    = 500;
@@ -461,7 +462,7 @@ class StudentController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@active';
+            $data['controller'] = 'DptTemporaryController@active';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }
@@ -470,7 +471,7 @@ class StudentController extends Controller
     public function delete(Request $request)
     {
         try {
-            $admin             = StudentModel::find($request->id);
+            $admin             = dptModel::find($request->id);
             $admin->status     = 0;
             $admin->deleted_at = date('Y-m-d');
             $admin->save();
@@ -478,7 +479,7 @@ class StudentController extends Controller
             if ($admin) {
                 $data['code']    = 200;
                 $data['message'] = 'Berhasil Menghapus Data Kelas';
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menghapus Data Kelas '.$admin->student_name.'','Kelas');
+                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menghapus Data Kelas '.$admin->dpt_name.'','Kelas');
                 return response()->json($data);
             } else {
                 $data['code']    = 500;
@@ -489,7 +490,7 @@ class StudentController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'StudentController@delete';
+            $data['controller'] = 'DptTemporaryController@delete';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }

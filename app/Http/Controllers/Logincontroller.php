@@ -17,6 +17,7 @@ class Logincontroller extends Controller
 {
     public function login(Request $request)
     {
+        //dd("okay");
         try {
             //dd("masuk sinni");
             //dd($request->username);
@@ -46,9 +47,11 @@ class Logincontroller extends Controller
                 if (Auth::guard('admin')->attempt(['email' => $request->username, 'password' => $request->password])) {
                     // dd("success");
                     $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Login ke System','Login');
+                    //dd("sukses");
                     return redirect()->intended('/dashboard');
 
                 } else {
+                    dd("eror");
                     $errors = new MessageBag(['password' => ['Your Email Or password invalid!. Please Check and Try Again!!!!']]);
                      return Redirect::back()->withErrors($errors);
                 }
@@ -57,6 +60,7 @@ class Logincontroller extends Controller
                 //      return Redirect::back()->withErrors($errors);
                 // }
             } else {
+                dd("sukses eror");
                  $errors = new MessageBag(['password' => ['Email Tidak Terdaftar di System']]);
                  return Redirect::back()->withErrors($errors);
             }

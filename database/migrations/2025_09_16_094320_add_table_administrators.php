@@ -24,6 +24,7 @@ class AddTableAdministrators extends Migration
             $table->string('password')->nullable();
             $table->string('confirm_password')->nullable();
             $table->integer('status')->default(1);
+            $table->timestamp('deleted_at')->nullable();
             $table->text('address')->nullable();
             $table->timestamps();
         });

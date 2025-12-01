@@ -5,7 +5,7 @@
 <head>
     <base href="">
     <meta charset="utf-8" />
-    <title>IPEKA UKS | @yield('title')</title>
+    <title>Pengelola DPT | @yield('title')</title>
     @yield('asset')
     <style type="text/css">
     .btn-sm {
