@@ -12,19 +12,6 @@
                     <div class="card-body">
                         <form class="form-horizontal p-3" novalidate id="form_add">@csrf
                             <div class="row mb-5">
-                                @if(Auth::guard('admin')->user()->id_scholl == null)
-                                <div class="col-md-12 mb-3">
-                                    <label>Sekolah</label>
-                                    <select class="select2 form-control" id="id_scholl" name="id_scholl" required>
-                                        <option value="">--pilih--</option>
-                                        @foreach($data_scholl as $ct)
-                                        <option value="{{$ct->id}}">{{$ct->scholl_name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                @else
-                                <input type="hidden" name="id_scholl" id="id_scholl" value="{{Auth::guard('admin')->user()->id_scholl}}">
-                                @endif
                                 <div class="col-md-12 col-sm-12">
                                     <div class="form-group">
                                         <label>File (csv)</label>

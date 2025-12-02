@@ -18,6 +18,7 @@ class AddTableDpt extends Migration
             $table->uuid('id')->primary();
             $table->bigInteger('dpid')->nullable();
             $table->bigInteger('id_village')->nullable();
+            $table->string('village')->nullable();
             $table->bigInteger('id_tps')->nullable();
             $table->string('tps')->nullable();
             $table->string('nkk')->nullable();

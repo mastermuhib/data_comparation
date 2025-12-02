@@ -28,74 +28,42 @@
             <div class="card-body pt-3 font-size-h6 font-weight-normal text-dark-50">
                 <form id="form_filter">
                     <div class="row" data-select2-id="4">
-                        <div class="col-md-2">
-                            <label>Gender </label>
-                            <select class="select2 form-control" id="gender" name="gender" onchange="DataTable()">
+                        <div class="col-md-3">
+                            <label>Kecamatan</label>
+                            <select class="select2 form-control" onchange="ChangeKec()" id="id_kec" name="id_kec">
                                 <option value="">Semua</option>
-                                <option value="1">Laki - Laki</option>
-                                <option value="2">Perempuan</option>
-                            </select>
-                        </div>
-                        <input type="hidden" id="start" name="start" value="0">
-                        @if(Auth::guard('admin')->user()->id_scholl == null)
-                        <div class="col-md-3">
-                            <label>Sekolah IPEKA</label>
-                            <select class="select2 form-control" onchange="ChangeScholl()" id="id_scholl" name="id_scholl">
-                                <option value="">Semua</option>
-                                @foreach($data_scholl as $ct)
-                                <option value="{{$ct->id}}">{{$ct->scholl_name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Kelas</label>
-                            <select class="select2 form-control" onchange="DataTable()" id="id_class" name="id_class">
-                                <option value="">Semua Kelas</option>
-                                
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label></label>
-                            <div class="input-group rounded bg-light mt-1">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">
-                                        <span class="svg-icon svg-icon-lg">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/General/Search.svg-->
-                                            <i class="fas fa-search"></i>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                    </span>
-                                </div>
-                                <input type="text" id="s_search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari">
-                            </div>
-                        </div>
-                        @else
-                        <input type="hidden" name="id_scholl" id="id_scholl" value="{{Auth::guard('admin')->user()->id_scholl}}">
-                        <div class="col-md-3">
-                            <label>Kelas</label>
-                            <select class="select2 form-control" onchange="DataTable()" id="id_class" name="id_class">
-                                <option value="">Semua Kelas</option>
-                                @foreach(DataClass(Auth::guard('admin')->user()->id_scholl) as $ct)
+                                @foreach($data_kec as $ct)
                                 <option value="{{$ct->id}}">{{$ct->name}}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-5">
-                            <label></label>
-                            <div class="input-group rounded bg-light mt-1">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">
-                                        <span class="svg-icon svg-icon-lg">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/General/Search.svg-->
-                                            <i class="fas fa-search"></i>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                    </span>
-                                </div>
-                                <input type="text" id="s_search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari">
-                            </div>
+                        <div class="col-md-2">
+                            <label>Desa</label>
+                            <select class="select2 form-control" onchange="DataTable()" id="id_kel" name="id_kel">
+                                <option value="">Semua Desa</option>
+                                
+                            </select>
                         </div>
-                        @endif
+                        <div class="col-md-2">
+                            <label>Gender </label>
+                            <select class="select2 form-control" id="gender" name="gender" onchange="DataTable()">
+                                <option value="">Semua</option>
+                                <option value="L">Laki - Laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Status </label>
+                            <select class="select2 form-control" id="status" name="status" onchange="DataTable()">
+                                <option value="">Semua</option>
+                                <option value="baru">Baru</option>
+                                <option value="tms">TMS</option>
+                                <option value="ubah">Ubah</option>
+                                <option value="aktif">Aktif</option>
+                            </select>
+                        </div>
+                        <input type="hidden" id="start" name="start" value="0">
+                        
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label></label>
@@ -118,12 +86,40 @@
         <!--begin::List Widget 9-->
         <div class="card card-custom card-stretch gutter-b">
             <!--begin::Header-->
-            <div class="card-body pt-2" id="div_body">
-                
-            </div>
-            <div class="text-center">
-                <button type="button" class="btn btn-lg btn-success mb-3" onclick="LoadMore()" id="loadmore">Lihat Siswa Lainya</button>
-                <button type="button" class="btn btn-lg btn-success mb-3" disabled id="loading_loadmore" style="display: none;">Loading.....</button>
+            <!--begin::Body-->
+            <div class="card-body pt-2">
+                <section id="basic-datatable">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <!-- <div class="card-header">
+                                    <h4 class="card-title">List Admin</h4>
+                                </div> -->
+                                <div class="card-content">
+                                    <div class="card-body card-dashboard">
+                                        <div class="table-responsive">
+                                            <table class="table zero-configuration" id="yourTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Kecamatan</th>
+                                                        <th>Kelurahan</th>
+                                                        <th>NIK</th>
+                                                        <th>Nama</th>
+                                                        <th>Gender</th>
+                                                        <th>Status</th>
+                                                        <th>TPS</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
             <!--end: Card Body-->
         </div>
@@ -179,142 +175,103 @@
         </div>
     </div>
 <!-- End Modal -->
+<!-- Preview -->
 @endsection
 @section('js')
-<!-- scipt js -->
 @include('components/componen_crud')
-
-<style>
-    label.error {
-        color: red;
-    }
-    </style>
 <script type="text/javascript">
+var column = [
+        { "data": "no" },
+        { "data": "kec" },
+        { "data": "kel" },
+        { "data": "nik" },
+        { "data": "name" },
+        { "data": "gender" },
+        { "data": "status" },
+        { "data": "tps" },
+        { "data": "actions" },
+    ];
+
+function data_tabel(table) {
+    var search     = $("#s_search").val();
+    var sort       = $("#sort").val();
+    var id_kec     = $("#id_scholl").val();
+    var gender     = $("#gender").val();
+    var start      = $("#start").val();
+    var id_kel     = $("#id_class").val();
+    var start_date = $("#start_date").val();
+    var end_date   = $("#end_date").val();
+    var status     = $("#status").val();
+    var nantable   = $('#yourTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "searching": false,
+        "ajax": {
+            "url": table,
+            "dataType": "json",
+            "type": "POST",
+            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start,gender:gender,id_kel:id_kel,start_date:start_date,end_date:end_date,status:status }
+        },
+        "columns": column,
+        "bDestroy": true
+    });
+    return nantable;
+}
 $(function() {
     //$('#myTable').DataTable();
     $(".select2-container--default").css('width', '100%');
-    DataTable();
-    
+    data_tabel('/data_dpt')
 });
-
 $("#s_search").keyup(function(){
-   DataTable();
+   data_tabel('/data_dpt')
 });
 
-function DataTable() {
-    $("#start").val(0);
-    var search = $("#s_search").val();
-    var sort   = $("#sort").val();
-    var id_scholl = $("#id_scholl").val();
-    var gender = $("#gender").val();
-    var start  = $("#start").val();
-    var id_class = $("#id_class").val();
-    var is_edit  = $("#is_edit").val();
-    var is_delete  = $("#is_delete").val();
 
-    //send data
-    $("#div_body").html('<div class="col-md-12"><div class="text-center mt-20 mb-20"><span class="text-success">Loading............</span></div></div>');
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-    $.ajax({ //line 28
-        type: 'POST',
-        url: '/get_data_siswa',
-        dataType: 'html',
-        data: { search:search,sort:sort,id_class:id_class,start:start,gender:gender,id_scholl:id_scholl,is_edit:is_edit,is_delete:is_delete },
-        success: function(data) {  
-            $("#div_body").html(data);
-            CekLoadMore()
-        }
-    });   
+$('.select2').on('change', function() { // when the value changes
+    $(this).valid(); // trigger validation on this element
+});
+
+function Reset(){
+    location.reload();
 }
 
-function LoadMore(){
-    now = $("#start").val();
-    start = parseInt(now) + 9;
-    var search = $("#s_search").val();
-    var sort   = $("#sort").val();
-    var id_scholl = $("#id_scholl").val();
-    var gender = $("#gender").val();
-    var id_class = $("#id_class").val();
-    var is_edit  = $("#is_edit").val();
-    var is_delete  = $("#is_delete").val();
-
-    //send data
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-    $.ajax({ //line 28
-        type: 'POST',
-        url: '/get_data_siswa',
-        dataType: 'html',
-        data: { search:search,sort:sort,id_class:id_class,start:start,gender:gender,id_scholl:id_scholl,is_edit:is_edit,is_delete:is_delete },
-        success: function(data) {  
-            $("#div_body").append(data);
-            CekLoadMore()
-            $("#start").val(start);
-        }
-    });    
+function DataTable(){
+    data_tabel('/data_dpt')
 }
 
-function CekLoadMore(){
-    
-    var search = $("#s_search").val();
-    var sort   = $("#sort").val();
-    var id_scholl = $("#id_scholl").val();
-    var gender = $("#gender").val();
-    var start  = $("#start").val();
-    var id_class = $("#id_class").val();
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-    $.ajax({ //line 28
-        type: 'POST',
-        url: '/cek_load_siswa',
-        dataType: 'json',
-        data: { search:search,sort:sort,id_class:id_class,start:start,gender:gender,id_scholl:id_scholl },
-        success: function(data) { 
-            console.log(); 
-            if (data.jumlah == '1') {
-                $("#loadmore").css('display',''); 
-            } else {
-                $("#loadmore").css('display','none'); 
-            }
-        }
-    });
+function DownloadExcel(){
+    var serial = $("#form_filter").serialize();
+    window.open("/export_excel/dpt_report/"+serial, '_blank');
 }
 
-function ChangeScholl(){
+function ChangeKec(){
 
-    id = $("#id_scholl").val();
+    id = $("#id_kec").val();
     if (id != '' || id != null) {
         $.ajax({
             type: 'GET',
-            url: '/get_class/'+id,
+            url: '/get_village/'+id,
             dataType: 'json',
             success: function(data) {
                 console.log(data)
-                $("#id_class").empty();
-                $("#id_class").append("<option value=''>Semua Kelas</option>");
+                $("#id_kel").empty();
+                $("#id_kel").append("<option value=''>Semua Desa</option>");
                 for (let i = 0; i < data.length; i++) {
-                    $("#id_class").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
+                    $("#id_kel").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
                 }
-                DataTable();
+                data_tabel('/data_dpt');
             },
             error: function(data) {
                 console.log(data);
             }
         });
     } else {
-        DataTable();
+        data_tabel('/data_dpt');
     }
 }
 
+function ResetAll(){
+    location.reload();
+}
 </script>
 @endsection
