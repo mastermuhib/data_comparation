@@ -4,13 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Model\CountryModel;
 use App\Model\DistrictModel;
-use App\Model\ProvinceModel;
+use App\Model\VillageModel;
 use App\Model\RoleModel;
-use App\Model\CityModel;
 use App\Traits\Fungsi;
 use Auth;
 use DB;
-use App\RegencyModel;
 use Illuminate\Http\Request;
 use Redirect;
 use App\Exceptions\Handler;
@@ -309,9 +307,9 @@ class DistrictController extends Controller
         }
     }
 
-    public function get_districts($city_id)
+    public function get_village($id)
     {
-        $data = DistrictModel::where('regency_id', $city_id)
+        $data = VillageModel::where('district_id', $id)
             ->whereNull('deleted_at')
             ->orderBy('name', 'asc')->get();
 

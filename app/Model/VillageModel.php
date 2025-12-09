@@ -4,13 +4,11 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-
-class DptModel extends Model
+class VillageModel extends Model
 {
-    protected $table 	= 't_dpt';
+    protected $table    = 'villages';
     protected $guarded = [''];
     protected $hidden   = ['created_at','updated_at'];
-    public $incrementing = true;
-    protected $keyType = 'uuid';
-
+    public $incrementing = false;
+    protected $dates = ['date','created_at'];
 }

@@ -74,6 +74,21 @@
                             </div>
                         </div>
                         <input type="hidden" name="sort" value="" id="is_sort">
+                        <div class="col-md-6 col-8 mt-3">
+                            <label></label>
+                            <div class="input-group rounded bg-light mt-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <span class="svg-icon svg-icon-lg">
+                                            <!--begin::Svg Icon | path:assets/media/svg/icons/General/Search.svg-->
+                                            <i class="fas fa-search"></i>
+                                            <!--end::Svg Icon-->
+                                        </span>
+                                    </span>
+                                </div>
+                                <input type="text" id="s_search" name="search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari">
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -195,12 +210,10 @@ var column = [
 function data_tabel(table) {
     var search     = $("#s_search").val();
     var sort       = $("#sort").val();
-    var id_kec     = $("#id_scholl").val();
+    var id_kec     = $("#id_kec").val();
     var gender     = $("#gender").val();
     var start      = $("#start").val();
-    var id_kel     = $("#id_class").val();
-    var start_date = $("#start_date").val();
-    var end_date   = $("#end_date").val();
+    var id_kel     = $("#id_kel").val();
     var status     = $("#status").val();
     var nantable   = $('#yourTable').DataTable({
         "processing": true,
@@ -210,7 +223,7 @@ function data_tabel(table) {
             "url": table,
             "dataType": "json",
             "type": "POST",
-            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start,gender:gender,id_kel:id_kel,start_date:start_date,end_date:end_date,status:status }
+            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start,gender:gender,id_kel:id_kel,status:status }
         },
         "columns": column,
         "bDestroy": true

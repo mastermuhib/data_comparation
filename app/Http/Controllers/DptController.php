@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Model\RoleModel;
 use App\Model\dptModel;
-use App\Model\SchollModel;
+use App\Model\DistrictModel;
 use App\Model\CityModel;
 use App\Model\UserModel;
 use App\Classes\upload;
@@ -28,9 +28,8 @@ class DptController extends Controller
                 return redirect('/');
             } else {
                 $role_id           = Auth::guard('admin')->user()->id_role;
-                $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
-                $data['data_city'] = CityModel::whereNull('deleted_at')->get();
-                $data['txt_button'] = "Tambah Siswa Baru";
+                $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+                $data['txt_button'] = "Tambah DPT Baru";
                 $data['href'] = "user/siswa/action/add";
                 //dd($data['id_adm_dept']);
                 return view('dpt.index', $data);
@@ -58,7 +57,6 @@ class DptController extends Controller
                 return redirect('/');
             } else {
                 $role_id           = Auth::guard('admin')->user()->id_role;
-                $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
                 //dd($data['id_adm_dept']);
                 return view('dpt.import', $data);
             }
@@ -81,7 +79,7 @@ class DptController extends Controller
             
             $csvMimes = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain','csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-excel');
             //dd($_FILES);
-            //str_replace("#", "", $originalString);
+            //(isset($line[])) ? "" : null ; $originalString);
             
             if(empty($_FILES['file']['name'])) {
                 $data['code']    = 500;
@@ -100,30 +98,36 @@ class DptController extends Controller
                             fgetcsv($csvFile);
                             //parse data from csv file line by line
                             //$data = fgetcsv($csvFile);
-                            while(($line = fgetcsv($csvFile)) !== FALSE){
-                                $id_village = str_replace("#", "", $line[2]);
-                                $village = str_replace("#", "", $line[3]);
-                                $dpid = str_replace("#", "", $line[4]);
-                                $nkk = str_replace("#", "", $line[5]);
-                                $nik = str_replace("#", "", $line[6]);
-                                $name = str_replace("#", "", $line[7]);
-                                $tmp_lahir = str_replace("#", "", $line[8]);
-                                $tgl_lahir = str_replace("#", "", $line[9]);
-                                $kawin = str_replace("#", "", $line[10]);
-                                $gender = str_replace("#", "", $line[11]);
-                                $address = str_replace("#", "", $line[12]);
-                                $rt = str_replace("#", "", $line[13]);
-                                $rw = str_replace("#", "", $line[14]);
-                                $dis = str_replace("#", "", $line[15]);
-                                $ektp = str_replace("#", "", $line[16]);
-                                $ket = str_replace("#", "", $line[17]);
-                                $sumber = str_replace("#", "", $line[18]);
-                                $tps_id = str_replace("#", "", $line[19]);
-                                $tps = str_replace("#", "", $line[20]);
-                                $updated = str_replace("#", "", $line[24]);
-                                $status = str_replace("#", "", $line[25]);
-                                $rank = str_replace("#", "", $line[26]);
-                                $tahapan = str_replace("#", "", $line[27]);
+                            while(($csv_excel = fgetcsv($csvFile)) !== FALSE){
+                                
+                                $line = explode("#", $csv_excel[0]);
+                                
+                                $id_village =  (isset($line[2])) ? $line[2] : null ; 
+                                $village = (isset($line[3])) ? $line[3] : null ;
+                                $dpid = (isset($line[4])) ? $line[4] : null ; 
+                                $nkk = (isset($line[5])) ? $line[5] : null ; 
+                                $nik = (isset($line[6])) ? $line[6] : null ; 
+                                $name = (isset($line[7])) ? $line[7] : null ; 
+                                $tmp_lahir = (isset($line[8])) ? $line[8] : null ; 
+                                $tgl_lahir = (isset($line[9])) ? $line[9] : null ; 
+                                $kawin = (isset($line[10])) ? $line[10] : null ; 
+                                $gender = (isset($line[11])) ? $line[11] : null ; 
+                                $address = (isset($line[12])) ? $line[12] : null ; 
+                                $rt = (isset($line[13])) ? $line[13] : null ; 
+                                $rw = (isset($line[14])) ? $line[14] : null ; 
+                                $dis = (isset($line[15])) ? $line[15] : null ; 
+                                $ektp = (isset($line[16])) ? $line[16] : null ; 
+                                $ket = (isset($line[17])) ? $line[17] : null ; 
+                                $sumber = (isset($line[18])) ? $line[18] : null ; 
+                                $tps_id = (isset($line[19])) ? $line[19] : null ; 
+                                $tps = (isset($line[20])) ? $line[20] : null ; 
+                                $updated = (isset($line[21])) ? $line[21] : null ; 
+                                $status = (isset($line[22])) ? $line[22] : null ; 
+                                $rank = (isset($line[23])) ? $line[23] : null ; 
+                                $tahapan = (isset($line[24])) ? $line[24] : null ; 
+                                $clasification = (isset($line[25])) ? $line[25] : null ; 
+                                $age = (isset($line[26])) ? $line[26] : null ; ;
+                                
                                 
                                 $insert_class = array(
                                     'id_village' => $id_village,
@@ -137,7 +141,7 @@ class DptController extends Controller
                                     'birth_place' => $tmp_lahir,
                                     'birth_day' => $tgl_lahir,
                                     'gender' => $gender,
-                                    'marriage_status' => $kawin,
+                                    'marriage_sts' => $kawin,
                                     'address' => $address,
                                     'disability' => $dis,
                                     'rt' => $rt,
@@ -148,9 +152,11 @@ class DptController extends Controller
                                     'description' => $ket,
                                     'status' => $status,
                                     'tahapan' => $tahapan,
-                                    'last_update' => $updated,                            
+                                    'last_update' => $updated,
+                                    'clasification' => $clasification,
+                                    'age' => $age,                           
                                     'created_at' => date('Y-m-d H:i:s'),
-                                    'updated_at' => date('Y-m-d H:i:s'),
+                                    'updated_at' => date('Y-m-d H:i:s')
                                 );
                                 $id_class = DB::table('t_dpt')->insertGetId($insert_class);                               
 
@@ -173,7 +179,7 @@ class DptController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'DptController@post_import_siswa';
+            $data['controller'] = 'DptController@post_import_dpt';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }
@@ -181,123 +187,89 @@ class DptController extends Controller
     }
 
 
+    
     public function list_data(Request $request)
     {
-        $data['is_edit'] = $request->is_edit;
-        $data['is_delete'] = $request->is_delete;
-        
-        $dpt = DB::table('dpts as s')->leftJoin('cities as c','c.id','s.id_city')->where('s.status',1);
-        if ($request->id_scholl != null) {
-            $relation_scholl = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_scholl',$request->id_scholl)->pluck('id_dpt')->toArray();
-            $dpt = $dpt->whereIn('s.id',$relation_scholl);
+
+        $totalData = DB::table('t_dpt')->count();
+        $totalFiltered = $totalData;
+        $limit = $request->input('length');
+        $start = $request->input('start');
+        $dir   = $request->input('order.0.dir');
+        $search = $request->search;
+
+        $posts = DB::table('t_dpt as p')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id');
+        if ($search != null) {
+            $posts = $posts->where(function ($query) use ($search,$request) {
+                $query->where('p.name','ilike', "%{$search}%");
+                $query->orWhere('v.name','ilike', "%{$search}%");
+                $query->orWhere('c.name','ilike', "%{$search}%");
+                $query->orWhere('nik','ilike', "%{$search}%"); 
+                $query->orWhere('nkk','ilike', "%{$search}%");  
+            });
         }
 
-        if ($request->id_class != null) {
-            $relation_class = DB::table('dpt_class_relations as s')->where('s.is_active',1)->where('id_class',$request->id_class)->pluck('id_dpt')->toArray();
-            $dpt = $dpt->whereIn('s.id',$relation_class);
+        
+        if ($request->id_kec != null) {
+            $posts = $posts->where('v.district_id',$request->id_kec);
+        }
+
+        if ($request->id_kel != null) {
+            $posts = $posts->where('id_village',$request->id_kel);
         }
 
         if ($request->gender != null) {
-            $dpt = $dpt->where('gender',$request->gender);
+            $posts = $posts->where('gender',$request->gender);
         }
 
-        if ($request->search != null) {
-            $dpt = $dpt->where(function ($query) use ($request) {
-                $search = $request->search;
-                $query->where('dpt_name','ilike', "%{$search}%");
-                $query->orWhere('c.name','ilike', "%{$search}%");
-            });
+        if ($request->id_student != null) {
+            $posts = $posts->where('id_student',$request->id_student);
         }
-        
+
+        $posts = $posts->select('p.*','v.name as desa','c.name as kecamatan');
         if ($request->sort == 1) {
-            $dpt = $dpt->orderBy('s.created_at','desc');
+            $posts = $posts->orderBy('c.id','asc');
         }
         if ($request->sort == 2) {
-            $dpt = $dpt->orderBy('dpt_name','asc');
+            $posts = $posts->orderBy('p.name','asc');
         }
-        
-        
-        $dpt = $dpt->limit(9)->offset($request->start)->select('s.*','c.name')->get();
-        $data['data'] = $dpt;
-        if ($data['data']->isNotEmpty()) {
-            foreach ($data['data'] as $k => $v) {
-                //$data['data'][$k]->image = env('BASE_IMG').$v->image;
-                $data['data'][$k]->scholl = $this->GetScholl($v->id,'scholl_name');
-                $data['data'][$k]->class = $this->GetClass($v->id,'class_name');
-                if (Auth::guard('admin')->user()->id_scholl != null) {
-                    $data['data'][$k]->phone = substr($v->phone, 0, 3)."**********";
-                }
-                if (Auth::guard('admin')->user()->id_scholl != null) {
-                    $data['data'][$k]->email = substr($v->email, 0, 3)."**********";
-                }
+
+        $totalFiltered = $posts->count();
+        $posts = $posts->limit($limit)->offset($start)->get();
+
+        $data = array();
+        if (!empty($posts)) {
+            $no = 0;
+            foreach ($posts as $d) {
+                $no = $no + 1;
+
+                $action = '<div style="float: left; margin-left: 5px;"><a href="/medical-record/pemeriksaan-tahunan/'.base64_encode($d->dpid).'" >
+                                <button type="button" class="btn btn-warning btn-sm" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-eye"></i> Detail</button></a>
+                            </div>';
+
+                $column['no']       = $no;
+                $column['kec']      = $d->kecamatan;
+                $column['kel']      = $d->desa;
+                $column['nik']      = $d->nik;
+                $column['name']     = $d->name;
+                $column['gender']   = $d->gender;
+                $column['status']   = $d->status;
+                $column['tps']      = $d->tps;
+                $column['actions']  = $action;
+                $data[]             = $column;
+
             }
-        }  
+        }
 
-        return view('dpt.data', $data);
+        $json_data = array(
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        );
+        echo json_encode($json_data);
     }
 
-    public function cek_load_siswa(Request $request)
-    {
-        
-        $dpt = DB::table('dpts as s')->leftJoin('cities as c','c.id','s.id_city')->where('s.status',1);
-        if ($request->id_scholl != null) {
-            $relation_scholl = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_scholl',$request->id_scholl)->pluck('id_dpt')->toArray();
-            $dpt = $dpt->whereIn('s.id',$relation_scholl);
-        }
-
-        if ($request->id_class != null) {
-            $relation_class = DB::table('dpt_class_relations as s')->where('s.is_active',1)->where('id_class',$request->id_class)->pluck('id_dpt')->toArray();
-            $dpt = $dpt->whereIn('s.id',$relation_class);
-        }
-
-        if ($request->gender != null) {
-            $dpt = $dpt->where('gender',$request->gender);
-        }
-
-        if ($request->search != null) {
-            $dpt = $dpt->where(function ($query) use ($request) {
-                $search = $request->search;
-                $query->where('dpt_name','ilike', "%{$search}%");
-                $query->orWhere('c.name','ilike', "%{$search}%");
-            });
-        }
-        
-        if ($request->sort == 1) {
-            $dpt = $dpt->orderBy('s.created_at','desc');
-        }
-        if ($request->sort == 2) {
-            $dpt = $dpt->orderBy('dpt_name','asc');
-        }
-        
-        $data['jumlah'] = 0;
-
-        $dpt = $dpt->offset($request->start)->count();
-        if ($dpt > $request->start) {
-            $data['jumlah'] = 1;
-        }
-
-        //dd($data);
-
-        return json_encode($data);
-    }
-
-    public function GetScholl($id,$coloumn){
-        $return = null;
-        $data = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->join('table_scholls as t','t.id','c.id_scholl')->where('s.is_active',1)->where('id_dpt',$id)->pluck($coloumn);
-        if ($data->isNotEmpty()) {
-            $return = $data[0];
-        }
-        return $return;
-    }
-
-    public function GetClass($id,$coloumn){
-        $return = null;
-        $data = DB::table('dpt_class_relations as s')->join('table_class as c','c.id','s.id_class')->where('s.is_active',1)->where('id_dpt',$id)->pluck($coloumn);
-        if ($data->isNotEmpty()) {
-            $return = $data[0];
-        }
-        return $return;
-    }
 
     public function add()
     {

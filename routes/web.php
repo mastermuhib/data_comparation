@@ -55,7 +55,7 @@ Route::post('/data_master_district','DistrictController@list_data')->middleware(
 Route::post('/active/District', 'DistrictController@active')->middleware('auth:admin');
 Route::post('/nonactive/District', 'DistrictController@nonactive')->middleware('auth:admin');
 Route::get('/master/district/{id}', 'DistrictController@detail')->middleware('auth:admin');
-Route::get('/districts/{city_id}', 'DistrictController@get_districts')->middleware('auth:admin');
+Route::get('/get_village/{id}', 'DistrictController@get_village')->middleware('auth:admin');
 Route::post('/post_master_district','DistrictController@post')->middleware('auth:admin');
 Route::post('/update/master_district','DistrictController@update')->middleware('auth:admin');
 Route::post('/delete/District', 'DistrictController@delete')->middleware('auth:admin');
@@ -115,7 +115,7 @@ Route::get('/export_excel/medical_report/{filter}','MedicalRecordController@expo
 
 //dpt
 Route::get('/dpt/list','DptController@index')->middleware('auth:admin');
-Route::post('/get_data_dpt','DptController@list_data')->middleware('auth:admin');
+Route::post('/data_dpt','DptController@list_data')->middleware('auth:admin');
 Route::post('/cek_load_dpt','DptController@cek_load_dpt')->middleware('auth:admin');
 Route::post('/post_dpt','DptController@post')->middleware('auth:admin');
 Route::post('/nonactive/dpt','DptController@nonactive')->middleware('auth:admin');
@@ -124,6 +124,6 @@ Route::post('/delete/dpt','DptController@delete')->middleware('auth:admin');
 Route::get('/user/dpt/{id}','DptController@detail')->middleware('auth:admin');
 Route::post('/update_dpt','DptController@update')->middleware('auth:admin');
 Route::get('/user/dpt/action/add','DptController@add')->middleware('auth:admin');
-Route::get('/dpt/action/import','DptController@import')->middleware('auth:admin');
+Route::get('/dpt/import','DptController@import')->middleware('auth:admin');
 Route::post('/post_import_dpt','DptController@post_import_dpt')->middleware('auth:admin');
 

@@ -28,13 +28,15 @@ class AddTableDptTemporaries extends Migration
             $table->string('birth_place')->nullable();
             $table->string('birth_day')->nullable();
             $table->date('birthday')->nullable();
-            $table->enum('gender', ['L', 'P'])->default('L');
-            $table->enum('marriage_sts', ['P', 'S', 'B'])->default('B');
+            $table->integer('age')->nullable();
+            $table->string('clasification')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('marriage_sts')->nullable();
             $table->text('address')->nullable();
             $table->string('disability')->nullable();
             $table->string('rt')->nullable();
             $table->string('rw')->nullable();
-            $table->enum('ektp', ['B', 'S'])->default('B');
+            $table->string('ektp')->nullable();
             $table->string('rank')->nullable();
             $table->string('source')->nullable();
             $table->string('description')->nullable();
