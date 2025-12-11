@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Model\RoleModel;
-use App\Model\PshycalModel;
-use App\Model\SchollModel;
-use App\Model\UserModel;
+use App\Model\RecapModel;
+use App\Model\DistrictModel;
 use App\Classes\upload;
 use App\Traits\Fungsi;
 use PDF;
@@ -15,15 +14,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Exceptions\Handler;
-use App\Exports\ExportPshycalRecord;
-use App\Exports\ExportPshycalRecordAll;
+use App\Exports\ExportRecapitulations;
+use App\Exports\ExportRecapitulationsAll;
 
-class PshycalRecordController extends Controller
+class RecapitulationsController extends Controller
 {
     public function index()
     {
-        // dd(Obat::get());
-        //dd(Auth::guard('admin')->user()->id_scholl);
         try {
             $data = parent::sidebar();
             if ($data['access'] == 0) {
@@ -32,19 +29,70 @@ class PshycalRecordController extends Controller
                 $role_id           = Auth::guard('admin')->user()->id_role;
                 $data['txt_button'] = "Tambah Pemeriksaan";
                 $data['href'] = "medical-record/pemeriksaan-tahunan/action/add";
-                $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
-                $end                 = date('Y-m-d');
-                $start               = date('Y-m-d',strtotime($end . "-30 days"));
-                $data['end']         = $end;
-                $data['start']       = $start;
+                $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
                 //dd($data['id_adm_dept']);
-                return view('pshycal_record.index', $data);
+                return view('recap.index', $data);
             }
         } catch (\Exception $e) {
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'PshycalRecordController@index';
+            $data['controller'] = 'RecapitulationsController@index';
+            $insert_error = parent::InsertErrorSystem($data);
+            $error = parent::sidebar();
+            $error['id'] = $insert_error;
+            return view('errors.index',$error); // jika Metode Get
+            //return response()->json($data); // jika metode Post
+        }
+    }
+
+    public function district()
+    {
+        try {
+            $data = parent::sidebar();
+            if ($data['access'] == 0) {
+                return redirect('/');
+            } else {
+                $role_id           = Auth::guard('admin')->user()->id_role;
+                $data['txt_button'] = "Tambah Pemeriksaan";
+                $data['href'] = "medical-record/pemeriksaan-tahunan/action/add";
+                $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+                //dd($data['id_adm_dept']);
+                return view('recap.district', $data);
+            }
+        } catch (\Exception $e) {
+            $data['code']    = 500;
+            $data['message'] = $e->getMessage();
+            $data['line'] = $e->getLine();
+            $data['controller'] = 'RecapitulationsController@district';
+            $insert_error = parent::InsertErrorSystem($data);
+            $error = parent::sidebar();
+            $error['id'] = $insert_error;
+            return view('errors.index',$error); // jika Metode Get
+            //return response()->json($data); // jika metode Post
+        }
+    }
+
+    public function village()
+    {
+        
+        try {
+            $data = parent::sidebar();
+            if ($data['access'] == 0) {
+                return redirect('/');
+            } else {
+                $role_id           = Auth::guard('admin')->user()->id_role;
+                $data['txt_button'] = "Tambah Pemeriksaan";
+                $data['href'] = "medical-record/pemeriksaan-tahunan/action/add";
+                $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+                //dd($data['id_adm_dept']);
+                return view('recap.village', $data);
+            }
+        } catch (\Exception $e) {
+            $data['code']    = 500;
+            $data['message'] = $e->getMessage();
+            $data['line'] = $e->getLine();
+            $data['controller'] = 'RecapitulationsController@village';
             $insert_error = parent::InsertErrorSystem($data);
             $error = parent::sidebar();
             $error['id'] = $insert_error;
@@ -58,7 +106,7 @@ class PshycalRecordController extends Controller
     {
 
 
-        $totalData = DB::table('physical_records')->whereNull('deleted_at')->count();
+        $totalData = DB::table('t_recaps')->count();
 
         $totalFiltered = $totalData;
 
@@ -152,6 +200,59 @@ class PshycalRecordController extends Controller
         echo json_encode($json_data);
     }
 
+    public function calculate(Request $request, $arr){
+        try {
+            $village = DB::table('villages')->get();
+            $clasification = DB::table('t_clasifications')->get();
+            $triwulan = $request->triwulan;
+            $year = $request->year;
+            foreach ($village as $k => $v) {
+                $t_male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->count();
+                $t_female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->count();
+                $total = (int)$t_male + (int)$t_female;
+                $update = DB::table('villages')->where('id',$v->id)->update(['male_dpt'=>$t_male,'female_dpt'=>$t_female,'total_dpt'=>$total]);
+                foreach ($clasification as $a => $b) {
+                    if ($b->min == null) {
+                        $male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->where('age','<',$b->max)->count();
+                        $female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->where('age','<',$b->max)->count();
+                    } else if($b->max == null){
+                        $male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->where('age','>',$b->min)->count();
+                        $female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->where('age','>',$b->min)->count();
+                    } else {
+                        $male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                        $female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                    }
+
+                    $insert_recaps = array(
+                        'id_village' => $v->id,
+                        'group' => date('YmdHis'),
+                        'id_clasification' => $b->id,
+                        'total_male' => $male,
+                        'total_female' => $female,
+                        'triwulan' => $triwulan,
+                        'year' => $year,                           
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    );
+                    $id_recap = DB::table('t_dpt')->insertGetId($insert_recaps);  
+                }
+
+            }
+
+            $data['code']    = 200;
+            $data['message'] = 'Berhasil Memblokir Data City';
+            return response()->json($data);
+        } catch (\Exception $e) {
+            $data['code']    = 500;
+            $data['message'] = $e->getMessage();
+            $data['line'] = $e->getLine();
+            $data['controller'] = 'RecapitulationsController@calculate';
+            $insert_error = parent::InsertErrorSystem($data);
+            return response()->json($data); // jika metode Post
+        }    
+
+    }
+
     public function export_excel(Request $request, $arr){
 
         parse_str($arr, $filter);
@@ -212,24 +313,10 @@ class PshycalRecordController extends Controller
         //dd($data);
         //return view('report.excel.demoplot', $data);
 
-        return Excel::download(new ExportPshycalRecordAll($data), 'Data Pemeriksaan Fisik '.$scholl.$class.$start.$end.'.xlsx');
+        return Excel::download(new ExportRecapitulationsAll($data), 'Data Pemeriksaan Fisik '.$scholl.$class.$start.$end.'.xlsx');
     }
 
-    public function add()
-    {
-        $data = parent::sidebar();
-        if ($data['access'] == 0) {
-            return redirect('/');
-        } else {
-            $role_id           = Auth::guard('admin')->user()->id_role;
-            $data['header_name'] = "Tambah Pemeriksaan";
-            $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
-            $data['data_doctor'] = DB::table('administrators as a')->join('roles as r','r.id','a.id_role')->whereNull('a.deleted_at')->where('r_type',1)->select('a.id','admin_name as name')->orderBy('admin_name','asc')->get();
-            //dd($data['id_adm_dept']);
-            return view('pshycal_record.add', $data);
-        }
-    }
-
+    
     public function post(Request $request)
     {
         // id bermasalah
@@ -254,42 +341,13 @@ class PshycalRecordController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'PshycalRecordController@post';
+            $data['controller'] = 'RecapitulationsController@post';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }
     }
 
-    public function update(Request $request)
-    {
-        try {
-        //dd($request->nik);
-            $input = $request->except('_token','isi');
-
-            $data['updated_at'] = date('Y-m-d H:i:s');
-
-            $insert = PshycalModel::where('id', $request->id)->update($input);
-            if ($insert) {
-                
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Mengupdate Data Pemeriksaan '.$request->id_student.'','Pemeriksaan');
-                $data['code']    = 200;
-                $data['message'] = 'Berhasil Mengupdate data pemeriksaan';
-                return response()->json($data);
-            } else {
-                $data['code']    = 500;
-                $data['message'] = 'Maaf Ada yang Error ';
-                $data['insert']  = $insertadmin;
-                return response()->json($data);
-            }
-        } catch (\Exception $e) {
-            $data['code']    = 500;
-            $data['message'] = $e->getMessage();
-            $data['line'] = $e->getLine();
-            $data['controller'] = 'PshycalRecordController@update';
-            $insert_error = parent::InsertErrorSystem($data);
-            return response()->json($data); // jika metode Post
-        }
-    }
+    
 
     public function detail($id)
     {
@@ -317,7 +375,7 @@ class PshycalRecordController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'PshycalRecordController@detail';
+            $data['controller'] = 'RecapitulationsController@detail';
             $insert_error = parent::InsertErrorSystem($data);
             $error = parent::sidebar();
             $error['id'] = $insert_error;
@@ -359,7 +417,7 @@ class PshycalRecordController extends Controller
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'PshycalRecordController@detail';
+            $data['controller'] = 'RecapitulationsController@detail';
             $insert_error = parent::InsertErrorSystem($data);
             $error = parent::sidebar();
             $error['id'] = $insert_error;
@@ -368,32 +426,7 @@ class PshycalRecordController extends Controller
         }
     }
 
-    public function delete(Request $request)
-    {
-        try {
-            $admin             = PshycalModel::find($request->id);
-            $admin->deleted_at = date('Y-m-d H:i:s');
-            $admin->save();
-
-            if ($admin) {
-                $data['code']    = 200;
-                $data['message'] = 'Berhasil Menghapus Data Pemeriksaan';
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menghapus Data Pemeriksaan '.$admin->id.'','Pemeriksaan');
-                return response()->json($data);
-            } else {
-                $data['code']    = 500;
-                $data['message'] = 'Maaf Ada yang Error ';
-                return response()->json($data);
-            }
-        } catch (\Exception $e) {
-            $data['code']    = 500;
-            $data['message'] = $e->getMessage();
-            $data['line'] = $e->getLine();
-            $data['controller'] = 'PshycalRecordController@delete';
-            $insert_error = parent::InsertErrorSystem($data);
-            return response()->json($data); // jika metode Post
-        }
-    }
+    
 
     public function print_detail($id)
     {

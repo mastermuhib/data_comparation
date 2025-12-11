@@ -1,15 +1,8 @@
 @extends('layout.app')
 @section('asset')
 <link rel="stylesheet" type="text/css" href="{{URL::asset('assets')}}/vendors/css/forms/select/select2.min.css">
-<style type="text/css">
-    table.dataTable thead .sorting, 
-table.dataTable thead .sorting_asc, 
-table.dataTable thead .sorting_desc {
-    background : none;
-}
-</style>
 @endsection
-@section('title', 'Tipe Produk')
+@section('title', 'Master Payment Category')
 @section('content')
 <div class="accordion accordion-solid accordion-panel accordion-svg-toggle mb-3 mt-3" id="faq">
     <div class="card p-6 col-md-12">
@@ -35,68 +28,53 @@ table.dataTable thead .sorting_desc {
             <div class="card-body pt-3 font-size-h6 font-weight-normal text-dark-50">
                 <form id="form_filter">
                     <div class="row" data-select2-id="4">
-                        <div class="col-md-2">
-                            <label>Gender </label>
-                            <select class="select2 form-control" id="gender" name="gender" onchange="data_tabel('/data_pemeriksaan')">
-                                <option value="">Semua</option>
-                                <option value="1">Laki - Laki</option>
-                                <option value="2">Perempuan</option>
-                            </select>
-                        </div>
-                        @if(Auth::guard('admin')->user()->id_scholl == null)
                         <div class="col-md-3">
-                            <label>Sekolah IPEKA</label>
-                            <select class="select2 form-control" onchange="ChangeScholl()" id="id_scholl" name="id_scholl">
+                            <label>Kecamatan</label>
+                            <select class="select2 form-control" onchange="ChangeKec()" id="id_kec" name="id_kec">
                                 <option value="">Semua</option>
-                                @foreach($data_scholl as $ct)
-                                <option value="{{$ct->id}}">{{$ct->scholl_name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Kelas</label>
-                            <select class="select2 form-control" onchange="data_tabel('/data_pemeriksaan')" id="id_class" name="id_class">
-                                <option value="">Semua Kelas</option>
-                                
-                            </select>
-                        </div>
-                        
-                        @else
-                        <input type="hidden" name="id_scholl" id="id_scholl" value="{{Auth::guard('admin')->user()->id_scholl}}">
-                        <div class="col-md-5">
-                            <label>Kelas</label>
-                            <select class="select2 form-control" onchange="data_tabel('/data_pemeriksaan')" id="id_class" name="id_class">
-                                <option value="">Semua Kelas</option>
-                                @foreach(DataClass(Auth::guard('admin')->user()->id_scholl) as $ct)
+                                @foreach($data_kec as $ct)
                                 <option value="{{$ct->id}}">{{$ct->name}}</option>
                                 @endforeach
                             </select>
                         </div>
-                        @endif
+                        <div class="col-md-2">
+                            <label>Desa</label>
+                            <select class="select2 form-control" onchange="DataTable()" id="id_kel" name="id_kel">
+                                <option value="">Semua Desa</option>
+                                
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Gender </label>
+                            <select class="select2 form-control" id="gender" name="gender" onchange="DataTable()">
+                                <option value="">Semua</option>
+                                <option value="L">Laki - Laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Status </label>
+                            <select class="select2 form-control" id="status" name="status" onchange="DataTable()">
+                                <option value="">Semua</option>
+                                <option value="baru">Baru</option>
+                                <option value="tms">TMS</option>
+                                <option value="ubah">Ubah</option>
+                                <option value="aktif">Aktif</option>
+                            </select>
+                        </div>
+                        <input type="hidden" id="start" name="start" value="0">
+                        
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label></label>
-                                <select class="form-control form-control-lg" name="sort" onchange="data_tabel('/data_pemeriksaan')" id="sort" style="height: 45px;">
+                                <select class="form-control form-control-lg" onchange="DataTable()" id="sort" style="height: 45px;">
                                     <option value="1">Terakhir dibuat</option>
                                     <option value="2">By Nama (A - Z)</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label></label>
-                                <button type="button" onclick="DownloadExcel()" class="btn btn-lg btn-success btn-block">Download Excel</button>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-6 mt-3">
-                            <label>Dari </label>
-                            <input class="form-control" value="{{$start}}" type="date" id="start_date" name="start_date" onchange="data_tabel('/data_pemeriksaan')">
-                        </div>
-                        <div class="col-md-2 col-6 mt-3">
-                            <label>Sampai </label>
-                            <input class="form-control" value="{{$end}}" type="date" id="end_date" name="end_date" onchange="data_tabel('/data_pemeriksaan')">
-                        </div>
-                        <div class="col-md-5 col-8 mt-3">
+                        <input type="hidden" name="sort" value="" id="is_sort">
+                        <div class="col-md-6 col-8 mt-3">
                             <label></label>
                             <div class="input-group rounded bg-light mt-1">
                                 <div class="input-group-prepend">
@@ -108,13 +86,7 @@ table.dataTable thead .sorting_desc {
                                         </span>
                                     </span>
                                 </div>
-                                <input type="text" id="s_search" name="search" class="form-control h-45px" onkeyup="data_tabel('/data_pemeriksaan')" placeholder="Cari">
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-4 mt-3">
-                            <div class="form-group">
-                                <label></label>
-                                <button type="button" onclick="Reset()" class="btn btn-lg btn-danger btn-block">Reset</button>
+                                <input type="text" id="s_search" name="search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari">
                             </div>
                         </div>
                     </div>
@@ -125,14 +97,10 @@ table.dataTable thead .sorting_desc {
     </div>
 </div>
 <div class="row">
-    <div class="col-lg-12 col-xxl-4">
+    <div class="col-lg-12">
         <!--begin::List Widget 9-->
         <div class="card card-custom card-stretch gutter-b">
             <!--begin::Header-->
-            <div class="card-header align-items-center border-0 mt-2">
-                <h5 class="text-dark font-weight-bold ml-3">List Pemeriksaan Tahunan</h5>
-            </div>
-            <!--end::Header-->
             <!--begin::Body-->
             <div class="card-body pt-2">
                 <section id="basic-datatable">
@@ -149,10 +117,13 @@ table.dataTable thead .sorting_desc {
                                                 <thead>
                                                     <tr>
                                                         <th>No</th>
-                                                        <th>Kelas</th>
-                                                        <th>Siswa</th>
-                                                        <th>Dokter Pemeriksa</th>
-                                                        <th>Tanggal</th>
+                                                        <th>Kecamatan</th>
+                                                        <th>Kelurahan</th>
+                                                        <th>NIK</th>
+                                                        <th>Nama</th>
+                                                        <th>Gender</th>
+                                                        <th>Status</th>
+                                                        <th>TPS</th>
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
@@ -169,22 +140,56 @@ table.dataTable thead .sorting_desc {
         </div>
         <!--end: Card-->
         <!--end: List Widget 9-->
+        <!-- </div> -->
     </div>
 </div>
-<input type="hidden" id="id_user" name="">
-<!-- modal batal approve -->
-
-<!-- Preview -->
-<div class="modal fade modal-cv" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" id="modal_prev">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content" style="border-radius: 12px" id="isi_preview">
-            
-        </div>
-        <div class="text-center" id="proses_loading">
-            <img alt="Pic" src="{{URL::asset('assets')}}/media/loading.gif" style="width: 30%">
+<!-- Modal -->
+    <div class="modal fade text-left" id="modal_aksi_status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="title-modal">Warning !!!</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form class="form-horizontal" id="form_aksi_status">
+                    <div class="modal-body">
+                        <input type="hidden" value="" id="id_data_status" name="id">
+                        <input type="hidden" value="" id="id_tujuan_status" name="tujuan">
+                        <input type="hidden" value="" id="id_aksi_status" name="aksi">
+                        <input type="hidden" value="" id="id_tabel_status" name="tabel">
+                        <div class="modal_aksi_status"></div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="aksi_kirim_status">OK</button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+<!-- End Modal -->
+<!-- Modal Delete-->
+    <div class="modal fade text-left" id="modal_delete_data" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="title-modal">Warning !!!</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    
+                    <div class=""><h5>Apakah Anda yakin untuk menghapus siswa ini?</h5></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="aksi_delete">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- End Modal -->
 <!-- Preview -->
 @endsection
 @section('js')
@@ -192,23 +197,24 @@ table.dataTable thead .sorting_desc {
 <script type="text/javascript">
 var column = [
         { "data": "no" },
-        { "data": "scholl" },
-        { "data": "student" },
-        { "data": "admin" },
-        { "data": "date" },
+        { "data": "kec" },
+        { "data": "kel" },
+        { "data": "nik" },
+        { "data": "name" },
+        { "data": "gender" },
+        { "data": "status" },
+        { "data": "tps" },
         { "data": "actions" },
     ];
 
 function data_tabel(table) {
     var search     = $("#s_search").val();
     var sort       = $("#sort").val();
-    var id_scholl  = $("#id_scholl").val();
+    var id_kec     = $("#id_kec").val();
     var gender     = $("#gender").val();
-    var start_date = $("#start_date").val();
-    var end_date   = $("#end_date").val();
-    var id_class   = $("#id_class").val();
-    var is_edit    = $("#is_edit").val();
-    var is_delete  = $("#is_delete").val();
+    var start      = $("#start").val();
+    var id_kel     = $("#id_kel").val();
+    var status     = $("#status").val();
     var nantable   = $('#yourTable').DataTable({
         "processing": true,
         "serverSide": true,
@@ -217,7 +223,7 @@ function data_tabel(table) {
             "url": table,
             "dataType": "json",
             "type": "POST",
-            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_class:id_class,start_date:start_date,end_date:end_date,gender:gender,id_scholl:id_scholl,is_edit:is_edit,is_delete:is_delete }
+            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start,gender:gender,id_kel:id_kel,status:status }
         },
         "columns": column,
         "bDestroy": true
@@ -227,10 +233,10 @@ function data_tabel(table) {
 $(function() {
     //$('#myTable').DataTable();
     $(".select2-container--default").css('width', '100%');
-    data_tabel('/data_pemeriksaan')
+    data_tabel('/data_dpt')
 });
 $("#s_search").keyup(function(){
-   data_tabel('/data_pemeriksaan')
+   data_tabel('/data_dpt')
 });
 
 
@@ -238,43 +244,47 @@ $('.select2').on('change', function() { // when the value changes
     $(this).valid(); // trigger validation on this element
 });
 
-function ChangeScholl(){
+function Reset(){
+    location.reload();
+}
 
-    id = $("#id_scholl").val();
+function DataTable(){
+    data_tabel('/data_dpt')
+}
+
+function DownloadExcel(){
+    var serial = $("#form_filter").serialize();
+    window.open("/export_excel/dpt_report/"+serial, '_blank');
+}
+
+function ChangeKec(){
+
+    id = $("#id_kec").val();
     if (id != '' || id != null) {
         $.ajax({
             type: 'GET',
-            url: '/get_class/'+id,
+            url: '/get_village/'+id,
             dataType: 'json',
             success: function(data) {
                 console.log(data)
-                $("#id_class").empty();
-                $("#id_class").append("<option value=''>Semua Kelas</option>");
+                $("#id_kel").empty();
+                $("#id_kel").append("<option value=''>Semua Desa</option>");
                 for (let i = 0; i < data.length; i++) {
-                    $("#id_class").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
+                    $("#id_kel").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
                 }
-                data_tabel('/data_pemeriksaan');
+                data_tabel('/data_dpt');
             },
             error: function(data) {
                 console.log(data);
             }
         });
     } else {
-        data_tabel('/data_pemeriksaan');
+        data_tabel('/data_dpt');
     }
 }
 
 function ResetAll(){
     location.reload();
-}
-
-function Reset(){
-    location.reload();
-}
-
-function DownloadExcel(){
-    var serial = $("#form_filter").serialize();
-    window.open("/export_excel/pshycal_record/"+serial, '_blank');
 }
 </script>
 @endsection

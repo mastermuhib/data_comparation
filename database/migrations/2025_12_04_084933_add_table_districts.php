@@ -19,7 +19,8 @@ class AddTableDistricts extends Migration
             $table->string('name')->nullable();               
             $table->bigInteger('male_dpt')->default(0); 
             $table->bigInteger('female_dpt')->default(0);  
-            $table->bigInteger('total_dpt')->default(0);                  
+            $table->bigInteger('total_dpt')->default(0); 
+            $table->date('deleted_at')->nullable();                 
             $table->timestamps();
         });
          

@@ -127,3 +127,12 @@ Route::get('/user/dpt/action/add','DptController@add')->middleware('auth:admin')
 Route::get('/dpt/import','DptController@import')->middleware('auth:admin');
 Route::post('/post_import_dpt','DptController@post_import_dpt')->middleware('auth:admin');
 
+//rekapitulasi/list-rekap
+Route::get('/rekapitulasi/list-rekap','RecapitulationsController@index')->middleware('auth:admin');
+Route::get('/rekapitulasi/kecamatan','RecapitulationsController@district')->middleware('auth:admin');
+Route::get('/rekapitulasi/desa','RecapitulationsController@village')->middleware('auth:admin');
+Route::post('/rekapitulasi/data','RecapitulationsController@list_data')->middleware('auth:admin');
+Route::post('/rekapitulasi/data','RecapitulationsController@list_data')->middleware('auth:admin');
+Route::post('/rekapitulasi/data','RecapitulationsController@list_data')->middleware('auth:admin');
+Route::post('/rekapitulasi/calculate','RecapitulationsController@calculate')->middleware('auth:admin');
+

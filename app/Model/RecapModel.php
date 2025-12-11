@@ -5,9 +5,9 @@ namespace App\Model;
 use Illuminate\Database\Eloquent\Model;
 
 
-class SchollModel extends Model
+class RecapModel extends Model
 {
-    protected $table 	= 'table_scholls';
+    protected $table 	= 't_recaps';
     protected $guarded = [''];
     protected $hidden   = ['created_at','updated_at'];
     public $incrementing = false;
