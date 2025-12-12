@@ -102,59 +102,35 @@ class RecapitulationsController extends Controller
     }
 
 
-    public function list_data(Request $request)
+    public function list_village(Request $request)
     {
 
-
         $totalData = DB::table('t_recaps')->count();
-
         $totalFiltered = $totalData;
-
         $limit = $request->input('length');
         $start = $request->input('start');
         $dir   = $request->input('order.0.dir');
         $search = $request->search;
 
-        $posts = DB::table('physical_records as p')->join('students as s','s.id','p.id_student')->join('administrators as a','a.id','p.id_doctor')->join('table_scholls as ts','ts.id','p.id_scholl')->join('table_class as tc','tc.id','p.id_class')->whereNull('p.deleted_at');
+        $posts = DB::table('t_recaps as p')->leftJoin('t_clasifications as cs','cs.id','p.id_clasification')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id');
         if ($search != null) {
             $posts = $posts->where(function ($query) use ($search,$request) {
-                $query->where('scholl_name','ilike', "%{$search}%");
-                $query->orWhere('a.admin_name','ilike', "%{$search}%");
-                $query->orWhere('class_name','ilike', "%{$search}%");
-                $query->orWhere('student_name','ilike', "%{$search}%");  
+                $query->where('p.name','ilike', "%{$search}%");
+                $query->orWhere('v.name','ilike', "%{$search}%");
+                $query->orWhere('c.name','ilike', "%{$search}%");
+                $query->orWhere('nik','ilike', "%{$search}%"); 
+                $query->orWhere('nkk','ilike', "%{$search}%");  
             });
         }
 
-        if ($request->start_date != null || $request->start_date != '') {
-            $posts = $posts->whereDate('p.date','>=',$request->start_date);
-        }
-        if ($request->end_date != null || $request->end_date != '') {
-            $posts = $posts->whereDate('p.date','<=',$request->end_date);
+        
+        if ($request->id_kec != null) {
+            $posts = $posts->where('v.district_id',$request->id_kec);
         }
 
-        if ($request->id_scholl != null) {
-            $posts = $posts->where('p.id_scholl',$request->id_scholl);
-        }
+        $posts = $posts->select('p.*','cs.name as klasifikasi','v.name as desa','c.name as kecamatan');
 
-        if ($request->id_class != null) {
-            $posts = $posts->where('id_class',$request->id_class);
-        }
-
-        if ($request->gender != null) {
-            $posts = $posts->where('gender',$request->gender);
-        }
-
-        if ($request->id_student != null) {
-            $posts = $posts->where('id_student',$request->id_student);
-        }
-
-        $posts = $posts->select('p.id','scholl_name','class_name','student_name','admin_name','p.date');
-        if ($request->sort == 1) {
-            $posts = $posts->orderBy('p.date','desc');
-        }
-        if ($request->sort == 2) {
-            $posts = $posts->orderBy('student_name','asc');
-        }
+        $posts = $posts->orderBy('c.id','asc')->orderBy('v.id','asc')->orderBy('cs.id','asc');
 
         $totalFiltered = $posts->count();
         $posts = $posts->limit($limit)->offset($start)->get();
@@ -165,28 +141,19 @@ class RecapitulationsController extends Controller
             foreach ($posts as $d) {
                 $no = $no + 1;
 
-                $cek_role = parent::admin_data();
-                if ($request->is_edit == 0) {
-                    $action = '<div style="float: left; margin-left: 5px;"><a href="/medical-record/pemeriksaan-tahunan/'.base64_encode($d->id).'" >
-                                <button type="button" class="btn btn-warning btn-sm" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-eye"></i> Detail</button></a>
-                            </div>';
-                    $edit = null;
-                } else {
-                    $edit = '<div style="float: left; margin-left: 5px;"><a href="/medical-record/pemeriksaan-tahunan/'.base64_encode($d->id).'" >
-                                <button type="button" class="btn btn-warning btn-sm" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-edit"></i> Edit</button></a>
-                            </div>';
-                    $action =  $edit.'<div style="float: left; margin-left: 5px;">
+                $action =  '<div style="float: left; margin-left: 5px;">
                                     <button type="button" class="btn btn-danger btn-sm aksi btn-aksi"  id="' . $d->id . '" aksi="delete" tujuan="' . 'pemeriksaan' . '" data="' . '/data_pemeriksaan' . '" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-trash"></i> Hapus</button>
                                 </div>';
-                }
+                
                 //delete
-                $column['no']        = $no;
-                $column['scholl']    = $d->scholl_name.'<p class="text-info">('.$d->class_name.')</p>';
-                $column['student']   = $d->student_name;
-                $column['admin']   = $d->admin_name;
-                $column['date']      = date('d F Y H:i',strtotime($d->date));
-                $column['actions']   = $action;
-                $data[]              = $column;
+                $column['no']       = $no;
+                $column['kec']      = $d->kecamatan;
+                $column['kel']      = $d->desa;
+                $column['klasifikasi'] = $d->klasifikasi;
+                $column['male']     = $d->total_male;
+                $column['female']   = $d->total_female;
+                $column['actions']  = $action;
+                $data[]             = $column;
 
             }
         }
@@ -200,27 +167,27 @@ class RecapitulationsController extends Controller
         echo json_encode($json_data);
     }
 
-    public function calculate(Request $request, $arr){
+    public function calculate(Request $request){
         try {
             $village = DB::table('villages')->get();
             $clasification = DB::table('t_clasifications')->get();
             $triwulan = $request->triwulan;
             $year = $request->year;
             foreach ($village as $k => $v) {
-                $t_male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->count();
-                $t_female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->count();
+                $t_male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->count();
+                $t_female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->count();
                 $total = (int)$t_male + (int)$t_female;
                 $update = DB::table('villages')->where('id',$v->id)->update(['male_dpt'=>$t_male,'female_dpt'=>$t_female,'total_dpt'=>$total]);
                 foreach ($clasification as $a => $b) {
                     if ($b->min == null) {
-                        $male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->where('age','<',$b->max)->count();
-                        $female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->where('age','<',$b->max)->count();
+                        $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','<',$b->max)->count();
+                        $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','<',$b->max)->count();
                     } else if($b->max == null){
-                        $male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->where('age','>',$b->min)->count();
-                        $female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->where('age','>',$b->min)->count();
+                        $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','>',$b->min)->count();
+                        $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','>',$b->min)->count();
                     } else {
-                        $male = DB::table('t_dpt')->where('gender','L')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
-                        $female = DB::table('t_dpt')->where('gender','P')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                        $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                        $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
                     }
 
                     $insert_recaps = array(
@@ -234,7 +201,7 @@ class RecapitulationsController extends Controller
                         'created_at' => date('Y-m-d H:i:s'),
                         'updated_at' => date('Y-m-d H:i:s')
                     );
-                    $id_recap = DB::table('t_dpt')->insertGetId($insert_recaps);  
+                    $id_recap = DB::table('t_recaps')->insertGetId($insert_recaps);  
                 }
 
             }

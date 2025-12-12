@@ -222,10 +222,6 @@ class DptController extends Controller
             $posts = $posts->where('gender',$request->gender);
         }
 
-        if ($request->id_student != null) {
-            $posts = $posts->where('id_student',$request->id_student);
-        }
-
         $posts = $posts->select('p.*','v.name as desa','c.name as kecamatan');
         if ($request->sort == 1) {
             $posts = $posts->orderBy('c.id','asc');
