@@ -37,27 +37,38 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-block btn-primary" type="button" onclick="Calculate()">Hitung Rekap</button>
+                        <div class="col-md-3">
+                            <label>Desa</label>
+                            <select class="select2 form-control" onchange="DataTable()" id="id_kel" name="id_kel">
+                                <option value="">Semua Desa</option>
+                                
+                            </select>
                         </div>
                         <div class="col-md-2">
-                            
+                            <label>Triwulan</label>
+                            <select class="select2 form-control" id="triwulan" name="triwulan" onchange="DataTable()">
+                                <option value="1">Triwulan I</option>
+                                <option value="2">Triwulan II</option>
+                                <option value="3">Triwulan III</option>
+                                <option value="4" selected>Triwulan IV</option>
+                            </select>
                         </div>
                         <div class="col-md-2">
-                            
+                            <label>Tahun</label>
+                            <select class="select2 form-control" id="year" name="year" onchange="DataTable()">
+                                <option value="2025" selected>2025</option>
+                                <option value="2026">2026</option>
+                            </select>
                         </div>
-                        <input type="hidden" id="start" name="start" value="0">
-                        
                         <div class="col-md-2">
-                            <div class="form-group">
-                                <label></label>
-                                <select class="form-control form-control-lg" onchange="DataTable()" id="sort" style="height: 45px;">
-                                    <option value="1">Terakhir dibuat</option>
-                                    <option value="2">By Nama (A - Z)</option>
-                                </select>
-                            </div>
+                            <label>Klasifikasi</label>
+                            <select class="select2 form-control" onchange="ChangeKec()" id="klasifikasi" name="klasifikasi">
+                                <option value="">Semua</option>
+                                @foreach($data_klasifikasi as $k)
+                                <option value="{{$k->id}}">{{$k->name}}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <input type="hidden" name="sort" value="" id="is_sort">
                         <div class="col-md-6 col-8 mt-3">
                             <label></label>
                             <div class="input-group rounded bg-light mt-1">
@@ -70,9 +81,20 @@
                                         </span>
                                     </span>
                                 </div>
-                                <input type="text" id="s_search" name="search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari">
+                                <input type="text" id="s_search" name="search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari Desa">
                             </div>
                         </div>
+                        <div class="col-md-2 pt-5">
+                            <button class="btn btn-block btn-primary" type="button" onclick="Calculate()">Hitung Rekap</button>
+                        </div>
+                        <div class="col-md-2 pt-5">
+                            <button class="btn btn-block btn-success" type="button" onclick="Download('excel')">Download Excel</button>
+                        </div>
+                        <div class="col-md-2 pt-5">
+                            <button class="btn btn-block btn-danger" type="button" onclick="Download('pdf')">Download PDF</button>
+                        </div>
+                        <input type="hidden" id="start" name="start" value="0">
+                        
                     </div>
                 </form>
             </div>
@@ -213,9 +235,11 @@ var column = [
 
 function data_tabel(table) {
     var search     = $("#s_search").val();
-    var sort       = $("#sort").val();
     var id_kec     = $("#id_kec").val();
-    var start      = $("#start").val();
+    var id_kel     = $("#id_kel").val();
+    var triwulan     = $("#triwulan").val();
+    var year     = $("#year").val();
+    var klasifikasi= $("#klasifikasi").val();
     var nantable   = $('#yourTable').DataTable({
         "processing": true,
         "serverSide": true,
@@ -224,7 +248,7 @@ function data_tabel(table) {
             "url": table,
             "dataType": "json",
             "type": "POST",
-            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start }
+            "data": { _token: "{{csrf_token()}}",search:search,id_kel:id_kel,id_kec:id_kec,year:year,triwulan:triwulan,klasifikasi:klasifikasi }
         },
         "columns": column,
         "bDestroy": true
@@ -263,7 +287,29 @@ function DownloadExcel(){
 }
 
 function ChangeKec(){
-   data_tabel('/rekapitulasi/data_village');
+    id = $("#id_kec").val();
+    if (id != '' || id != null) {
+        $.ajax({
+            type: 'GET',
+            url: '/get_village/'+id,
+            dataType: 'json',
+            success: function(data) {
+                console.log(data)
+                $("#id_kel").empty();
+                $("#id_kel").append("<option value=''>Semua Desa</option>");
+                for (let i = 0; i < data.length; i++) {
+                    $("#id_kel").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
+                }
+                data_tabel('/rekapitulasi/data_village');
+            },
+            error: function(data) {
+                console.log(data);
+            }
+        });
+    } else {
+        data_tabel('/rekapitulasi/data_village');
+    }
+   
 }
 
 function ResetAll(){
@@ -302,5 +348,9 @@ $("#form_calcuclate").validate({
         });
     }
 });
+function Download(type){
+    var serial = $("#form_filter").serialize();
+    window.open("/download_rekapitulasi_desa/"+type+"/"+serial, '_blank');
+}
 </script>
 @endsection

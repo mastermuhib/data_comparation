@@ -45,7 +45,7 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label>Gender </label>
+                            <label>Jenis Kelamin </label>
                             <select class="select2 form-control" id="gender" name="gender" onchange="DataTable()">
                                 <option value="">Semua</option>
                                 <option value="L">Laki - Laki</option>
@@ -53,26 +53,34 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label>Status </label>
-                            <select class="select2 form-control" id="status" name="status" onchange="DataTable()">
+                            <label>Perkawinan</label>
+                            <select class="select2 form-control" id="kawin" name="kawin" onchange="DataTable()">
                                 <option value="">Semua</option>
+                                <option value="B">Belum Kawin</option>
+                                <option value="S">Sudah Kawin</option>
+                                <option value="P">Cerai</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Klasifikasi</label>
+                            <select class="select2 form-control" multiple onchange="DataTable()" id="klasifikasi" name="klasifikasi[]">
+                                
+                                @foreach($data_klasifikasi as $k)
+                                <option value="{{$k->name}}">{{$k->name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2 mt-3">
+                            <label>Status </label>
+                            <select class="select2 form-control" id="status" name="status[]" multiple onchange="DataTable()">
                                 <option value="baru">Baru</option>
-                                <option value="tms">TMS</option>
                                 <option value="ubah">Ubah</option>
                                 <option value="aktif">Aktif</option>
+                                <option value="tms">TMS</option>
+                                <option value="hapus">Hapus</option>
                             </select>
                         </div>
                         <input type="hidden" id="start" name="start" value="0">
-                        
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label></label>
-                                <select class="form-control form-control-lg" onchange="DataTable()" id="sort" style="height: 45px;">
-                                    <option value="1">Terakhir dibuat</option>
-                                    <option value="2">By Nama (A - Z)</option>
-                                </select>
-                            </div>
-                        </div>
                         <input type="hidden" name="sort" value="" id="is_sort">
                         <div class="col-md-6 col-8 mt-3">
                             <label></label>
@@ -112,6 +120,12 @@
                                 </div> -->
                                 <div class="card-content">
                                     <div class="card-body card-dashboard">
+                                        <div class="row">
+                                            <div class="col-md-3"></div>
+                                            <div class="col-md-3"><label>Total LK : <input value="0" disabled id="total_male" class="hitung"></label></div>
+                                            <div class="col-md-3"><label>Total PR : <input value="0" disabled id="total_female" class="hitung"></label></div>
+                                            <div class="col-md-3"><label>Total : <input value="0" disabled id="total" class="hitung"></label></div>
+                                        </div>
                                         <div class="table-responsive">
                                             <table class="table zero-configuration" id="yourTable">
                                                 <thead>
@@ -212,9 +226,10 @@ function data_tabel(table) {
     var sort       = $("#sort").val();
     var id_kec     = $("#id_kec").val();
     var gender     = $("#gender").val();
-    var start      = $("#start").val();
     var id_kel     = $("#id_kel").val();
     var status     = $("#status").val();
+    var klasifikasi = $("#klasifikasi").val();
+    var kawin     = $("#kawin").val();
     var nantable   = $('#yourTable').DataTable({
         "processing": true,
         "serverSide": true,
@@ -223,7 +238,7 @@ function data_tabel(table) {
             "url": table,
             "dataType": "json",
             "type": "POST",
-            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start,gender:gender,id_kel:id_kel,status:status }
+            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,gender:gender,id_kel:id_kel,status:status,klasifikasi:klasifikasi,kawin:kawin }
         },
         "columns": column,
         "bDestroy": true
@@ -234,9 +249,36 @@ $(function() {
     //$('#myTable').DataTable();
     $(".select2-container--default").css('width', '100%');
     data_tabel('/data_dpt')
+    HitungTotal();
 });
+
+function HitungTotal(){
+    $(".hitung").val("Loading.........");
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    $.ajax({ //line 28
+        type: 'POST',
+        url: '/dpt/calculate',
+        dataType: 'json',
+        data: new FormData($("#form_filter")[0]),
+        processData: false,
+        contentType: false,
+        success: function(data) {
+            $("#total_male").val(data.male);
+            $("#total_female").val(data.female);
+            $("#total").val(data.total);
+        }, error : function(data) {
+            $(".hitung").val(0);
+        }
+    });
+}
+
 $("#s_search").keyup(function(){
    data_tabel('/data_dpt')
+   HitungTotal();
 });
 
 
@@ -250,6 +292,7 @@ function Reset(){
 
 function DataTable(){
     data_tabel('/data_dpt')
+    HitungTotal();
 }
 
 function DownloadExcel(){
@@ -281,6 +324,7 @@ function ChangeKec(){
     } else {
         data_tabel('/data_dpt');
     }
+    HitungTotal();
 }
 
 function ResetAll(){

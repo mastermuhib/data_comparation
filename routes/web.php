@@ -126,6 +126,10 @@ Route::post('/update_dpt','DptController@update')->middleware('auth:admin');
 Route::get('/user/dpt/action/add','DptController@add')->middleware('auth:admin');
 Route::get('/dpt/import','DptController@import')->middleware('auth:admin');
 Route::post('/post_import_dpt','DptController@post_import_dpt')->middleware('auth:admin');
+Route::post('/dpt/calculate','DptController@calculate')->middleware('auth:admin');
+Route::get('/dpt/sanding-data','DptController@pairing')->middleware('auth:admin');
+Route::post('/post_pairing_dpt','DptController@post_pairing_dpt')->middleware('auth:admin');
+Route::get('/dpt/download_pairing/{coloumn}','DptController@download_pairing')->middleware('auth:admin');
 
 //rekapitulasi/list-rekap
 Route::get('/rekapitulasi/list-rekap','RecapitulationsController@index')->middleware('auth:admin');
@@ -135,4 +139,16 @@ Route::post('/rekapitulasi/data_recap','RecapitulationsController@list_recap')->
 Route::post('/rekapitulasi/data_village','RecapitulationsController@list_village')->middleware('auth:admin');
 Route::post('/rekapitulasi/data_district','RecapitulationsController@list_district')->middleware('auth:admin');
 Route::post('/rekapitulasi/calculate','RecapitulationsController@calculate')->middleware('auth:admin');
+
+//download recapitulation
+Route::get('/download_rekapitulasi/excel/{arr}','DownloadRecapitulationsController@excelRecap')->middleware('auth:admin');
+Route::get('/download_rekapitulasi_kecamatan/excel/{arr}','DownloadRecapitulationsController@excelDistrict')->middleware('auth:admin');
+Route::get('/download_rekapitulasi_desa/excel/{arr}','DownloadRecapitulationsController@excelVillage')->middleware('auth:admin');
+
+//download recapitulation
+Route::get('/dpt/download-dpt','DownloadDPTController@index')->middleware('auth:admin');
+Route::post('/data_download_dpt','DownloadDPTController@list_data')->middleware('auth:admin');
+Route::post('/download_dpt/calculate','DownloadDPTController@calculate')->middleware('auth:admin');
+Route::get('/export_statistic/{arr}','DownloadDPTController@export_statistic')->middleware('auth:admin');
+Route::get('/export_dpt/{id}/{arr}','DownloadDPTController@export_dpt')->middleware('auth:admin');
 

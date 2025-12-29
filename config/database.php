@@ -90,6 +90,15 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+        'monggo_con' => [
+            'driver'   => 'mongodb',
+            'host'     => env('MONGO_DB_HOST', '103.13.207.181'),
+            'port'     => env('MONGO_DB_PORT', 27018),
+            'database' => env('MONGO_DB_DATABASE'),
+            'username' => env('MONGO_DB_USER'),
+            'password' => env('MONGO_DB_PASSWORD'),
+            'options'  => []
+        ],
 
     ],
 

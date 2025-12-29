@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Model\RoleModel;
 use App\Model\RecapModel;
 use App\Model\DistrictModel;
+use App\Model\KlasifikasiModel;
 use App\Classes\upload;
 use App\Traits\Fungsi;
 use PDF;
@@ -30,6 +31,7 @@ class RecapitulationsController extends Controller
                 $data['txt_button'] = "Tambah Pemeriksaan";
                 $data['href'] = "medical-record/pemeriksaan-tahunan/action/add";
                 $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+                $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
                 //dd($data['id_adm_dept']);
                 return view('recap.index', $data);
             }
@@ -56,8 +58,7 @@ class RecapitulationsController extends Controller
                 $role_id           = Auth::guard('admin')->user()->id_role;
                 $data['txt_button'] = "Tambah Pemeriksaan";
                 $data['href'] = "medical-record/pemeriksaan-tahunan/action/add";
-                $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
-                //dd($data['id_adm_dept']);
+                $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
                 return view('recap.district', $data);
             }
         } catch (\Exception $e) {
@@ -85,6 +86,7 @@ class RecapitulationsController extends Controller
                 $data['txt_button'] = "Tambah Pemeriksaan";
                 $data['href'] = "medical-record/pemeriksaan-tahunan/action/add";
                 $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+                $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
                 //dd($data['id_adm_dept']);
                 return view('recap.village', $data);
             }
@@ -115,17 +117,29 @@ class RecapitulationsController extends Controller
         $posts = DB::table('t_recaps as p')->leftJoin('t_clasifications as cs','cs.id','p.id_clasification')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id');
         if ($search != null) {
             $posts = $posts->where(function ($query) use ($search,$request) {
-                $query->where('p.name','ilike', "%{$search}%");
-                $query->orWhere('v.name','ilike', "%{$search}%");
-                $query->orWhere('c.name','ilike', "%{$search}%");
-                $query->orWhere('nik','ilike', "%{$search}%"); 
-                $query->orWhere('nkk','ilike', "%{$search}%");  
+                $query->where('v.name','ilike', "%{$search}%");
             });
         }
 
         
         if ($request->id_kec != null) {
             $posts = $posts->where('v.district_id',$request->id_kec);
+        }
+
+        if ($request->id_kel != null) {
+            $posts = $posts->where('v.id',$request->id_kel);
+        }
+
+        if ($request->year != null) {
+            $posts = $posts->where('year',$request->year);
+        }
+
+        if ($request->klasifikasi != null) {
+            $posts = $posts->where('id_clasification',$request->klasifikasi);
+        }
+
+        if ($request->triwulan != null) {
+            $posts = $posts->where('triwulan',$request->triwulan);
         }
 
         $posts = $posts->select('p.*','cs.name as klasifikasi','v.name as desa','c.name as kecamatan');
@@ -137,13 +151,14 @@ class RecapitulationsController extends Controller
 
         $data = array();
         if (!empty($posts)) {
-            $no = 0;
+            $no = $start;
             foreach ($posts as $d) {
                 $no = $no + 1;
 
                 $action =  '<div style="float: left; margin-left: 5px;">
                                     <button type="button" class="btn btn-danger btn-sm aksi btn-aksi"  id="' . $d->id . '" aksi="delete" tujuan="' . 'pemeriksaan' . '" data="' . '/data_pemeriksaan' . '" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-trash"></i> Hapus</button>
                                 </div>';
+                $total = (int)$d->total_male + (int)$d->total_female;                
                 
                 //delete
                 $column['no']       = $no;
@@ -152,6 +167,7 @@ class RecapitulationsController extends Controller
                 $column['klasifikasi'] = $d->klasifikasi;
                 $column['male']     = $d->total_male;
                 $column['female']   = $d->total_female;
+                $column['total']    = $total;
                 $column['actions']  = $action;
                 $data[]             = $column;
 
@@ -167,32 +183,175 @@ class RecapitulationsController extends Controller
         echo json_encode($json_data);
     }
 
+    public function list_district(Request $request)
+    {
+        
+        $limit = $request->input('length');
+        $start = $request->input('start');
+        $dir   = $request->input('order.0.dir');
+        $search = $request->search;
+
+        $posts = DB::table('t_recaps as p')->join('t_clasifications as cs','cs.id','p.id_clasification')->join('villages as v','v.id','p.id_village')->join('districts as c','c.id','v.district_id');
+        if ($search != null) {
+            $posts = $posts->where(function ($query) use ($search,$request) {
+                $query->where('cs.name','ilike', "%{$search}%");
+                 
+            });
+        }
+
+        if ($request->year != null) {
+            $posts = $posts->where('year',$request->year);
+        }
+
+        if ($request->klasifikasi != null) {
+            $posts = $posts->where('id_clasification',$request->klasifikasi);
+        }
+
+        if ($request->triwulan != null) {
+            $posts = $posts->where('triwulan',$request->triwulan);
+        }
+
+        $posts = $posts->select('cs.id as cs_id','c.id as c_id','c.name as kecamatan','cs.name as klasifikasi','triwulan','year','csid')->distinct();
+        $posts = $posts->orderBy('c.id','asc')->orderBy('csid','asc');
+
+        $totalFiltered = $posts->get()->count();
+        $posts = $posts->limit($limit)->offset($start)->get();
+        
+        $data = array();
+        if (!empty($posts)) {
+            $no = $start;
+            foreach ($posts as $d) {
+                $no = $no + 1;
+
+                $action =  '<div style="float: left; margin-left: 5px;">
+                                    <button type="button" class="btn btn-danger btn-sm aksi btn-aksi"  id="' . $d->c_id . '" aksi="delete" tujuan="' . 'pemeriksaan' . '" data="' . '/data_pemeriksaan' . '" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-trash"></i> Hapus</button>
+                                </div>';
+                //$total = (int)$d->total_male + (int)$d->total_female;
+                $male = $this->DataD($d->c_id,$d->cs_id,$d->triwulan,$d->year,'total_male');
+                $female = $this->DataD($d->c_id,$d->cs_id,$d->triwulan,$d->year,'total_female'); 
+                $total = (int)$male + (int)$female;               
+                
+                //delete
+                $column['no']       = $no;
+                $column['kec']      = $d->kecamatan;
+                $column['klasifikasi'] = $d->klasifikasi;
+                $column['male']     = $male;
+                $column['female']   = $female;
+                $column['total']    = $total;
+                $column['actions']  = $action;
+                $data[]             = $column;
+
+            }
+        }
+
+        $json_data = array(
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => intval($totalFiltered),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        );
+        echo json_encode($json_data);
+    }
+
+
+    public function list_recap(Request $request)
+    {
+
+        
+        $limit = $request->input('length');
+        $start = $request->input('start');
+        $dir   = $request->input('order.0.dir');
+        $search = $request->search;
+
+        $posts = DB::table('t_recaps as p')->join('t_clasifications as cs','cs.id','p.id_clasification')->join('villages as v','v.id','p.id_village')->join('districts as c','c.id','v.district_id');
+        
+        if ($request->year != null) {
+            $posts = $posts->where('year',$request->year);
+        }
+
+        if ($request->klasifikasi != null) {
+            $posts = $posts->where('id_clasification',$request->klasifikasi);
+        }
+
+        if ($request->triwulan != null) {
+            $posts = $posts->where('triwulan',$request->triwulan);
+        }
+
+        $posts = $posts->select('cs.id as cs_id','group','csid','triwulan','year','cs.name as klasifikasi')->distinct();
+        
+        $posts = $posts->orderBy('csid','asc');
+
+        $totalFiltered = $posts->get()->count();
+        $posts = $posts->limit($limit)->offset($start)->get();
+        
+
+        $data = array();
+        if (!empty($posts)) {
+            $no = $start;
+            foreach ($posts as $d) {
+                $no = $no + 1;
+
+                $action =  '<div style="float: left; margin-left: 5px;">
+                                    <button type="button" class="btn btn-danger btn-sm aksi btn-aksi"  id="' . $d->group . '" aksi="delete" tujuan="' . 'pemeriksaan' . '" data="' . '/data_pemeriksaan' . '" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-trash"></i> Hapus</button>
+                                </div>';
+                //$total = (int)$d->total_male + (int)$d->total_female;
+                $male = $this->DataDT($d->group,$d->cs_id,'total_male');
+                $female = $this->DataDT($d->group,$d->cs_id,'total_female'); 
+                $total = (int)$male + (int)$female;               
+                
+                //delete
+                $column['no']       = $no;
+                $column['triwulan']      = 'Triwulan '.$d->triwulan.' '.$d->year;
+                $column['klasifikasi'] = $d->klasifikasi;
+                $column['male']     = $male;
+                $column['female']   = $female;
+                $column['total']    = $total;
+                $column['actions']  = $action;
+                $data[]             = $column;
+
+            }
+        }
+
+        $json_data = array(
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => intval($totalFiltered),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        );
+        echo json_encode($json_data);
+    }
+
+    public function DataD($kec,$kualif,$triwulan,$year,$coloumn){
+        $posts = DB::table('t_recaps as p')->join('t_clasifications as cs','cs.id','p.id_clasification')->join('villages as v','v.id','p.id_village')->join('districts as c','c.id','v.district_id')->where('v.district_id',$kec)->where('id_clasification',$kualif)->where('triwulan',$triwulan)->where('year',$year)->sum($coloumn);
+        return $posts;
+    }
+
+    public function DataDT($group,$kualif,$coloumn){
+        $posts = DB::table('t_recaps as p')->join('t_clasifications as cs','cs.id','p.id_clasification')->join('villages as v','v.id','p.id_village')->join('districts as c','c.id','v.district_id')->where('group',$group)->where('id_clasification',$kualif)->sum($coloumn);
+        return $posts;
+    }
+
     public function calculate(Request $request){
         try {
             $village = DB::table('villages')->get();
             $clasification = DB::table('t_clasifications')->get();
             $triwulan = $request->triwulan;
             $year = $request->year;
+            $group = date('YmdHis');
             foreach ($village as $k => $v) {
                 $t_male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->count();
                 $t_female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->count();
                 $total = (int)$t_male + (int)$t_female;
                 $update = DB::table('villages')->where('id',$v->id)->update(['male_dpt'=>$t_male,'female_dpt'=>$t_female,'total_dpt'=>$total]);
                 foreach ($clasification as $a => $b) {
-                    if ($b->min == null) {
-                        $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','<',$b->max)->count();
-                        $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','<',$b->max)->count();
-                    } else if($b->max == null){
-                        $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','>',$b->min)->count();
-                        $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','>',$b->min)->count();
-                    } else {
-                        $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
-                        $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
-                    }
+                    
+                    $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                    $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                    
 
                     $insert_recaps = array(
                         'id_village' => $v->id,
-                        'group' => date('YmdHis'),
+                        'group' => $group,
                         'id_clasification' => $b->id,
                         'total_male' => $male,
                         'total_female' => $female,
@@ -207,7 +366,7 @@ class RecapitulationsController extends Controller
             }
 
             $data['code']    = 200;
-            $data['message'] = 'Berhasil Memblokir Data City';
+            $data['message'] = 'Berhasil Mengkalkulasi Data';
             return response()->json($data);
         } catch (\Exception $e) {
             $data['code']    = 500;

@@ -2,7 +2,7 @@
 @section('asset')
 <link rel="stylesheet" type="text/css" href="{{URL::asset('assets')}}/vendors/css/forms/select/select2.min.css">
 @endsection
-@section('title', 'Master Payment Category')
+@section('title', 'Rekapitulasi DPT')
 @section('content')
 <div class="accordion accordion-solid accordion-panel accordion-svg-toggle mb-3 mt-3" id="faq">
     <div class="card p-6 col-md-12">
@@ -28,67 +28,44 @@
             <div class="card-body pt-3 font-size-h6 font-weight-normal text-dark-50">
                 <form id="form_filter">
                     <div class="row" data-select2-id="4">
-                        <div class="col-md-3">
-                            <label>Kecamatan</label>
-                            <select class="select2 form-control" onchange="ChangeKec()" id="id_kec" name="id_kec">
+                        
+                        <div class="col-md-2">
+                            <label>Triwulan</label>
+                            <select class="select2 form-control" id="triwulan" name="triwulan" onchange="DataTable()">
+                                <option value="1">Triwulan I</option>
+                                <option value="2">Triwulan II</option>
+                                <option value="3">Triwulan III</option>
+                                <option value="4" selected>Triwulan IV</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Tahun</label>
+                            <select class="select2 form-control" id="year" name="year" onchange="DataTable()">
+                                <option value="2025" selected>2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Klasifikasi</label>
+                            <select class="select2 form-control" onchange="ChangeKec()" id="klasifikasi" name="klasifikasi">
                                 <option value="">Semua</option>
-                                @foreach($data_kec as $ct)
-                                <option value="{{$ct->id}}">{{$ct->name}}</option>
+                                @foreach($data_klasifikasi as $k)
+                                <option value="{{$k->id}}">{{$k->name}}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label>Desa</label>
-                            <select class="select2 form-control" onchange="DataTable()" id="id_kel" name="id_kel">
-                                <option value="">Semua Desa</option>
-                                
-                            </select>
+                        
+                        <div class="col-md-2 pt-5">
+                            <button class="btn btn-block btn-primary" type="button" onclick="Calculate()">Hitung Rekap</button>
                         </div>
-                        <div class="col-md-2">
-                            <label>Gender </label>
-                            <select class="select2 form-control" id="gender" name="gender" onchange="DataTable()">
-                                <option value="">Semua</option>
-                                <option value="L">Laki - Laki</option>
-                                <option value="P">Perempuan</option>
-                            </select>
+                        <div class="col-md-2 pt-5">
+                            <button class="btn btn-block btn-success" type="button" onclick="Download('excel')">Download Excel</button>
                         </div>
-                        <div class="col-md-2">
-                            <label>Status </label>
-                            <select class="select2 form-control" id="status" name="status" onchange="DataTable()">
-                                <option value="">Semua</option>
-                                <option value="baru">Baru</option>
-                                <option value="tms">TMS</option>
-                                <option value="ubah">Ubah</option>
-                                <option value="aktif">Aktif</option>
-                            </select>
+                        <div class="col-md-2 pt-5">
+                            <button class="btn btn-block btn-danger" type="button" onclick="Download('pdf')">Download PDF</button>
                         </div>
                         <input type="hidden" id="start" name="start" value="0">
                         
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label></label>
-                                <select class="form-control form-control-lg" onchange="DataTable()" id="sort" style="height: 45px;">
-                                    <option value="1">Terakhir dibuat</option>
-                                    <option value="2">By Nama (A - Z)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <input type="hidden" name="sort" value="" id="is_sort">
-                        <div class="col-md-6 col-8 mt-3">
-                            <label></label>
-                            <div class="input-group rounded bg-light mt-1">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">
-                                        <span class="svg-icon svg-icon-lg">
-                                            <!--begin::Svg Icon | path:assets/media/svg/icons/General/Search.svg-->
-                                            <i class="fas fa-search"></i>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                    </span>
-                                </div>
-                                <input type="text" id="s_search" name="search" class="form-control h-45px" onkeyup="DataTable()" placeholder="Cari">
-                            </div>
-                        </div>
                     </div>
                 </form>
             </div>
@@ -117,13 +94,11 @@
                                                 <thead>
                                                     <tr>
                                                         <th>No</th>
-                                                        <th>Kecamatan</th>
-                                                        <th>Kelurahan</th>
-                                                        <th>NIK</th>
-                                                        <th>Nama</th>
-                                                        <th>Gender</th>
-                                                        <th>Status</th>
-                                                        <th>TPS</th>
+                                                        <th>Triwulan</th>
+                                                        <th>Klasifikasi</th>
+                                                        <th>Laki - Laki</th>
+                                                        <th>Perempuan</th>
+                                                        <th>Total</th>
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
@@ -170,21 +145,43 @@
     </div>
 <!-- End Modal -->
 <!-- Modal Delete-->
-    <div class="modal fade text-left" id="modal_delete_data" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" aria-hidden="true">
+    <div class="modal fade text-left" id="modalCalculate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
-            <div class="modal-content">
+            <div class="modal-content modal-lg">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="title-modal">Warning !!!</h4>
+                    <h4 class="modal-title" id="title-modal">Menghitung Ulang</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    
-                    <div class=""><h5>Apakah Anda yakin untuk menghapus siswa ini?</h5></div>
+                    <form class="form-horizontal p-3" novalidate id="form_calcuclate">@csrf
+                    <div class="row">
+                        <div class="col-4 pt-2">
+                            <label>Pilih Triwulan</label>
+                            <select class="select2 form-control" name="triwulan">
+                                <option value="1">Triwulan I</option>
+                                <option value="2">Triwulan II</option>
+                                <option value="3">Triwulan III</option>
+                                <option value="4">Triwulan IV</option>
+                            </select>
+                        </div>
+                        <div class="col-4 pt-2">
+                            <label>Pilih Tahun</label>
+                            <select class="select2 form-control" name="year">
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        <div class="col-4 pt-5">
+                            <button class="btn btn-block btn-success" id="save_btn">Hitung Rekap</button>
+                            <button class="btn btn-block btn-success" style="display:none;" disabled id="loading_btn">Loading.........</button>
+                        </div>
+                    </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="aksi_delete">OK</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" >Tutup</button>
                 </div>
             </div>
         </div>
@@ -197,24 +194,19 @@
 <script type="text/javascript">
 var column = [
         { "data": "no" },
-        { "data": "kec" },
-        { "data": "kel" },
-        { "data": "nik" },
-        { "data": "name" },
-        { "data": "gender" },
-        { "data": "status" },
-        { "data": "tps" },
+        { "data": "triwulan" },
+        { "data": "klasifikasi" },
+        { "data": "male" },
+        { "data": "female" },
+        { "data": "total" },
         { "data": "actions" },
     ];
 
 function data_tabel(table) {
-    var search     = $("#s_search").val();
-    var sort       = $("#sort").val();
-    var id_kec     = $("#id_kec").val();
-    var gender     = $("#gender").val();
-    var start      = $("#start").val();
-    var id_kel     = $("#id_kel").val();
-    var status     = $("#status").val();
+    
+    var triwulan     = $("#triwulan").val();
+    var year     = $("#year").val();
+    var klasifikasi= $("#klasifikasi").val();
     var nantable   = $('#yourTable').DataTable({
         "processing": true,
         "serverSide": true,
@@ -223,7 +215,7 @@ function data_tabel(table) {
             "url": table,
             "dataType": "json",
             "type": "POST",
-            "data": { _token: "{{csrf_token()}}",search:search,sort:sort,id_kec:id_kec,start:start,gender:gender,id_kel:id_kel,status:status }
+            "data": { _token: "{{csrf_token()}}",year:year,triwulan:triwulan,klasifikasi:klasifikasi }
         },
         "columns": column,
         "bDestroy": true
@@ -233,10 +225,10 @@ function data_tabel(table) {
 $(function() {
     //$('#myTable').DataTable();
     $(".select2-container--default").css('width', '100%');
-    data_tabel('/data_dpt')
+    data_tabel('/rekapitulasi/data_recap')
 });
 $("#s_search").keyup(function(){
-   data_tabel('/data_dpt')
+   data_tabel('/rekapitulasi/data_recap')
 });
 
 
@@ -244,12 +236,16 @@ $('.select2').on('change', function() { // when the value changes
     $(this).valid(); // trigger validation on this element
 });
 
+function Calculate(){
+    $("#modalCalculate").modal('show');
+}
+
 function Reset(){
     location.reload();
 }
 
 function DataTable(){
-    data_tabel('/data_dpt')
+    data_tabel('/rekapitulasi/data_recap')
 }
 
 function DownloadExcel(){
@@ -258,7 +254,6 @@ function DownloadExcel(){
 }
 
 function ChangeKec(){
-
     id = $("#id_kec").val();
     if (id != '' || id != null) {
         $.ajax({
@@ -272,19 +267,58 @@ function ChangeKec(){
                 for (let i = 0; i < data.length; i++) {
                     $("#id_kel").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
                 }
-                data_tabel('/data_dpt');
+                data_tabel('/rekapitulasi/data_recap');
             },
             error: function(data) {
                 console.log(data);
             }
         });
     } else {
-        data_tabel('/data_dpt');
+        data_tabel('/rekapitulasi/data_recap');
     }
+   
 }
 
 function ResetAll(){
     location.reload();
+}
+
+$("#form_calcuclate").validate({
+    submitHandler: function(form) {
+        $("#loading_btn").css('display','');
+        $("#save_btn").css('display','none');
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({ //line 28
+            type: 'POST',
+            url: '/rekapitulasi/calculate',
+            dataType: 'json',
+            data: new FormData($("#form_calcuclate")[0]),
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                $("#loading_btn").css('display','none');
+                $("#save_btn").css('display','');
+                if (data.code == 200) {
+                    show_toast(data.message, 1);
+                    location.reload();
+                } else {
+                    show_toast(data.message, 0);
+                }
+            }, error : function(data) {
+                $("#loading_btn").css('display','none');
+                $("#save_btn").css('display','');
+            }
+        });
+    }
+});
+
+function Download(type){
+    var serial = $("#form_filter").serialize();
+    window.open("/download_rekapitulasi/"+type+"/"+serial, '_blank');
 }
 </script>
 @endsection

@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 
-class ExportMedicalReportAll implements FromView, ShouldAutoSize
+class ExportRecapResults implements FromView, ShouldAutoSize
 {
     protected $data;
 
@@ -23,6 +23,7 @@ class ExportMedicalReportAll implements FromView, ShouldAutoSize
 
     public function view(): View
     {
-        return view('medical_report_all', $this->data);
+        return view('recapitulation_result', $this->data);
     }
 }
+

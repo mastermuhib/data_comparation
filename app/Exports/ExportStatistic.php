@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 
-class ExportTransaksi implements FromView, ShouldAutoSize
+class ExportStatistic implements FromView, ShouldAutoSize
 {
     protected $data;
 
@@ -23,6 +23,7 @@ class ExportTransaksi implements FromView, ShouldAutoSize
 
     public function view(): View
     {
-        return view('laporan.excel.transaksi', $this->data);
+        return view('export_statistic', $this->data);
     }
 }
+
