@@ -7,6 +7,8 @@ use Auth;
 use App\RoleModel;
 use App\MenuModel;
 use App\CompanyModel;
+use App\Model\DistrictModel;
+use App\Model\KlasifikasiModel;
 use App\Traits\Fungsi;
 use App\Model\SchollModel;
 use App\Model\MedicineModel;
@@ -38,11 +40,30 @@ class DashboardController extends Controller
             $data['start'] = $end;
             // $data['start'] = date('Y-m-d',strtotime('-1 day',strtotime($end)));
             $data['end'] = $end;
-            $data['header_name'] = '<span>Dashboard</span> <input type="month" id="bdaymonth" name="bdaymonth" class="form-control ml-40" onchange="ChangeDashboard()" value="'.date('Y-m').'" style="margin-top: -30px;">';
+            $data['header_name'] = '<span>Dashboard</span>';
+            // $data['header_name'] = '<span>Dashboard</span> <input type="month" id="bdaymonth" name="bdaymonth" class="form-control ml-40" onchange="ChangeDashboard()" value="'.date('Y-m').'" style="margin-top: -30px;">';
+            $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+            $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
             // bisnis
               
         return view('dashboard',$data);
       }
+    }
+
+    public function getDpt($request){
+            
+        $dpt = DB::table('t_dpt as p')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id')->where(function ($query) use ($request) {
+            if ($request->id_kec != null) {
+                $query->where('c.id',$request->id_kec);
+            } 
+            if ($request->id_kel != null) {
+                $query->where('v.id',$request->id_kel);
+            } 
+            if (isset($request->status)) {
+                $query->whereIn('p.status',$request->status);
+            } 
+        });
+        return $dpt;
     }
 
     public function get_dashboard(Request $request){
@@ -50,26 +71,19 @@ class DashboardController extends Controller
         $data['all'] = 1;
         $month = date('m',strtotime($request->periode));
         $year  = date('Y',strtotime($request->periode));
-        $id_scholl = $request->id_scholl;
+        $array_gender_count = [];
+        
+        $dpt = $this->getDpt($request);
 
-       
-        // $data['j_student'] = DB::table('students as st')->join('table_class as c','c.id','m.id_class')->where(function ($query) use ($id_scholl) {
-        //     if ($id_scholl != null) {
-        //         $query->where('s.id',$id_scholl);
-        //     } 
-        // })->whereNull('deleted_at')->count();
-        $data['j_student'] = DB::table('students as st')->join('student_class_relations as scr','scr.id_student','st.id')->join('table_class as c','c.id','scr.id_class')->where(function ($query) use ($id_scholl) {
-            if ($id_scholl != null) {
-                $query->where('c.id_scholl',$id_scholl);
-            } 
-        })->where('scr.is_active',1) ->whereNull('st.deleted_at')->count();
+        $data['j_dpt']  = $dpt->select('gender')->count();
+        $data['j_dptl'] = $dpt->where('gender','L')->count();
+        $data['j_dptp'] = $data['j_dpt'] - $data['j_dptl'];
+        $data['gender_count'] = array($data['j_dptl'],$data['j_dptp']);
+        
+        dd($data);
 
-        // $data['j_parent'] = DB::table('student_parents')->whereNull('deleted_at')->count();
-        $data['j_parent'] = DB::table('student_parent_relations as spr')->join('students as st','st.id','spr.id_student')->join('student_class_relations as scr','scr.id_student','st.id')->join('table_class as c','c.id','scr.id_class')->where(function ($query) use ($id_scholl) {
-            if ($id_scholl != null) {
-                $query->where('c.id_scholl',$id_scholl);
-            } 
-        })->where('scr.is_active',1) ->whereNull('st.deleted_at')->count();
+
+        
 
 
         $data['j_teacher'] = DB::table('teachers as t')->join('teacher_scholl_relations as tsr','tsr.id_teacher','t.id')->where(function ($query) use ($id_scholl) {
@@ -88,7 +102,6 @@ class DashboardController extends Controller
 
         //$data['category_medical_name'] = gatCategoryName($year,$month); sekolah
         $array_medical_name = [];
-        $array_medical_count = [];
         $array_medical_color = [];
         $this_month = "01"."-".$month."-".$year;
         $t_month = [];

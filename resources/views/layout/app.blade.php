@@ -96,7 +96,7 @@
     <div id="kt_header_mobile" class="header-mobile align-items-center header-mobile-fixed">
         <!--begin::Logo-->
         <a href="javascript:void(0)">
-            <h5 class="text-white">CMS Ipeka</h5>
+            <h5 class="text-white">CMS Pengelola DPT</h5>
         </a>
         <!--end::Logo-->
         <!--begin::Toolbar-->

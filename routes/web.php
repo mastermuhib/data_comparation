@@ -127,9 +127,19 @@ Route::get('/user/dpt/action/add','DptController@add')->middleware('auth:admin')
 Route::get('/dpt/import','DptController@import')->middleware('auth:admin');
 Route::post('/post_import_dpt','DptController@post_import_dpt')->middleware('auth:admin');
 Route::post('/dpt/calculate','DptController@calculate')->middleware('auth:admin');
-Route::get('/dpt/sanding-data','DptController@pairing')->middleware('auth:admin');
-Route::post('/post_pairing_dpt','DptController@post_pairing_dpt')->middleware('auth:admin');
-Route::get('/dpt/download_pairing/{coloumn}','DptController@download_pairing')->middleware('auth:admin');
+Route::get('/dpt/ubah-data','DptController@ubah_data')->middleware('auth:admin');
+Route::post('/data_ubah','DptController@data_ubah')->middleware('auth:admin');
+Route::post('/post-ubah-data','DptController@post_ubah_data')->middleware('auth:admin');
+Route::get('/dpt/ubah-data/{id}','DptController@detail_ubah_data')->middleware('auth:admin');
+Route::post('/data_detail_ubah','DptController@data_detail_ubah')->middleware('auth:admin');
+
+//sanding data
+Route::get('/sanding-data/sanding-data','PairingDptController@pairing')->middleware('auth:admin');
+Route::post('/post_pairing_dpt','PairingDptController@post_pairing_dpt')->middleware('auth:admin');
+Route::get('/dpt/download_pairing/{coloumn}','PairingDptController@download_pairing')->middleware('auth:admin');
+Route::get('/sanding-data/data-meninggal','PairingDptController@die')->middleware('auth:admin');
+Route::post('/post_pairing_die','PairingDptController@post_pairing_die')->middleware('auth:admin');
+Route::get('/dpt/download_pairing_die/{coloumn}','PairingDptController@download_pairing_die')->middleware('auth:admin');
 
 //rekapitulasi/list-rekap
 Route::get('/rekapitulasi/list-rekap','RecapitulationsController@index')->middleware('auth:admin');

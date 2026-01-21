@@ -10,6 +10,7 @@ use App\Model\CityModel;
 use App\Model\UserModel;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Model\TemporaryMonggoDB;
+use App\Model\ChangeDataMonggoDB;
 use App\Classes\upload;
 use App\Traits\Fungsi;
 use Auth;
@@ -77,29 +78,7 @@ class DptController extends Controller
         }
     }
 
-    public function pairing()
-    {
-        
-        try {
-            $data = parent::sidebar();
-            if ($data['access'] == 0) {
-                return redirect('/');
-            } else {
-                $role_id           = Auth::guard('admin')->user()->id_role;
-                //dd($data['id_adm_dept']);
-                return view('dpt.pairing', $data);
-            }
-        } catch (\Exception $e) {
-            $data['code']    = 500;
-            $data['message'] = $e->getMessage();
-            $data['line'] = $e->getLine();
-            $data['controller'] = 'DptController@pairing';
-            $insert_error = parent::InsertErrorSystem($data);
-            $error = parent::sidebar();
-            $error['id'] = $insert_error;
-            return view('errors.index',$error); 
-        }
-    }
+    
 
     public function post_import_dpt(Request $request){
         
@@ -213,84 +192,7 @@ class DptController extends Controller
 
     }
 
-    public function post_pairing_dpt(Request $request){
-        
-        try {
-            
-            $csvMimes = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain','csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            
-            $nik_location = (int)$request->nik - 1;
-            $page = 0;
-            if(empty($_FILES['file']['name'])) {
-                $data['code']    = 500;
-                $data['message'] = "File Kosong";
-            } else {
-                if(in_array($_FILES['file']['type'],$csvMimes)){
-                    if(is_uploaded_file($_FILES['file']['tmp_name'])){ 
-                        // check file size
-                        if(filesize($_FILES['file']['tmp_name']) > 51200000000000000) {
-                            $data['code']    = 500;
-                            $data['message'] = "File Maksimal 500 Mb";
-                        } else {
-                            //open uploaded csv file with read only mode
-                            $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
-                            //skip first line
-                            fgets($csvFile);
-                            //parse data from csv file line by line
-                            //$data = fgetcsv($csvFile);
-                            while(($csv_excel = fgets($csvFile)) !== FALSE){
-                        
-                                $line = explode("#", $csv_excel);
-                                //$line = $csv_excel;
-                                //dd($line);
-                                $status = "Tidak ada di Sidalih";
-                                $count = count($line);
-                                $page = $count;
-                                $array = [];
-                                for ($i=0; $i < $count; $i++) { 
-                                    $clean = str_replace('"', '', $line[$i]);
-                                    $clean = trim(preg_replace('/\s\s+/', ' ', $clean));
-                                    // if ($i == $nik_location) {
-                                    //     $clean = "'".$clean;
-                                    // }
-                                    $array['col'.$i] = $clean;
-                                }
-                                $nik = str_replace('"', '', $line[$nik_location]);
-                                //dd($nik);
-                                $check = DB::table('t_dpt')->where('nik',$nik)->whereNotIn('status',['tms','delete'])->count();
-                                if ($check > 0) {
-                                    $status = "Ada di Sidalih";
-                                }
-
-                                $array['col'.$count] = $status;
-                                TemporaryMonggoDB::create($array);                         
-
-                            }
-                        }
-                        
-                    }                   
-                    //close opened csv file
-                    fclose($csvFile);
-        
-                    $data['code']    = 200;
-                    $data['page']  = (int)$page;
-                    $data['message'] = "Berhasil Mengimport Data DPT";
-                } else {
-                    $data['code']    = 500;
-                    $data['message'] = "Tipe File Tidak Sesuai. Pastikan file bertipe csv";
-                }
-                return response()->json($data);
-            }
-        } catch (\Exception $e) {
-            $data['code']    = 500;
-            $data['message'] = $e->getMessage();
-            $data['line'] = $e->getLine();
-            $data['controller'] = 'DptController@post_import_dpt';
-            $insert_error = parent::InsertErrorSystem($data);
-            return response()->json($data); // jika metode Post
-        }
-
-    }
+    
 
     public function calculate(Request $request)
     {
@@ -412,136 +314,240 @@ class DptController extends Controller
             $role_id           = Auth::guard('admin')->user()->id_role;
             $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
             $data['data_city'] = CityModel::whereNull('deleted_at')->get();
-            $data['header_name'] = "Tambah Siswa Baru";
+            $data['header_name'] = "Data DPT";
             //dd($data['id_adm_dept']);
             return view('dpt.add', $data);
         }
     }
 
-    public function post(Request $request)
+    public function detail_ubah_data($ids)
+    {
+        $id = base64_decode($ids);
+        $data = parent::sidebar();
+        if ($data['access'] == 0) {
+            return redirect('/');
+        } else {
+            $role_id           = Auth::guard('admin')->user()->id_role;
+            $data['data'] = DB::table('t_change_datas')->where('id',$id)->first();
+            $data['header_name'] = "Riwayat Ubah Data DPT";
+            //dd($id);
+            //dd($data['data']);
+            return view('dpt.list_ubah_data', $data);
+        }
+    }
+
+    public function ubah_data()
+    {
+        $data = parent::sidebar();
+        if ($data['access'] == 0) {
+            return redirect('/');
+        } else {
+            $role_id           = Auth::guard('admin')->user()->id_role;
+            //dd($data['id_adm_dept']);
+            return view('dpt.ubah-data', $data);
+        }
+    }
+
+    public function data_ubah(Request $request)
+    {
+
+        $totalData = DB::table('t_change_datas')->count();
+        $totalFiltered = $totalData;
+        $limit = $request->input('length');
+        $start = $request->input('start');
+        $dir   = $request->input('order.0.dir');
+        $search = $request->search;
+        $status = $request->status;
+
+        $posts = DB::table('t_change_datas as p');
+        if ($search != null) {
+            $posts = $posts->where(function ($query) use ($search,$request) {
+                $query->where('p.code','ilike', "%{$search}%");
+                $query->orWhere('p.triwulan','ilike', "%{$search}%");
+            });
+        }
+
+        $posts = $posts->select('p.*');
+        
+        $totalFiltered = $posts->count();
+        $posts = $posts->limit($limit)->offset($start)->get();
+
+        $data = array();
+        if (!empty($posts)) {
+            $no = $start;
+            foreach ($posts as $d) {
+                $no = $no + 1;
+
+                $action = '<div style="float: left; margin-left: 5px;"><a href="/dpt/ubah-data/'.base64_encode($d->id).'" target="_blank" >
+                                <button type="button" class="btn btn-warning btn-sm" style="min-width: 110px;margin-left: 2px;margin-top:3px;text-align:left"><i class="fa fa-eye"></i> Detail</button></a>
+                            </div>';
+
+                $column['no']       = $no;
+                $column['date']     = $d->created_at;
+                $column['triwulan'] = 'Triwulan - '.$d->triwulan.' '.$d->year;
+                $column['type']     = $d->type;
+                $column['total']    = $d->total;
+                $column['actions']  = $action;
+                $data[]             = $column;
+
+            }
+        }
+
+        $json_data = array(
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        );
+        echo json_encode($json_data);
+    }
+
+    public function post_ubah_data(Request $request)
     {
         // id bermasalah
         try {
-            $input = $request->except('_token','id_scholl','id_class','tgl_masuk');
+            $input = $request->except('_token','file','nik','old','new');
+            $code = date('YmdHis');
+            $line_nik = (int)$request->nik - 1;
+            $line_old = (int)$request->old - 1;
+            $line_new = (int)$request->new - 1;
 
-            if ($request->file('image')) {
-                $input['image']  = parent::uploadFileS3($request->file('image'));
-            } 
+            //insert ke mongo
+            $csvMimes = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain','csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-excel');
+            //dd($_FILES);
+            //(isset($line[])) ? "" : null ; $originalString);
+            
+            if(empty($_FILES['file']['name'])) {
+                $data['code']    = 500;
+                $data['message'] = "File Kosong";
+            } else {
+                if(in_array($_FILES['file']['type'],$csvMimes)){
+                    if(is_uploaded_file($_FILES['file']['tmp_name'])){ 
+                        // check file size
+                        if(filesize($_FILES['file']['tmp_name']) > 51200000000000000) {
+                            $data['code']    = 500;
+                            $data['message'] = "File Maksimal 500 Mb";
+                        } else {
+                            //open uploaded csv file with read only mode
+                            $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
+                            //skip first line
+                            fgets($csvFile);
+                            //parse data from csv file line by line
+                            //$data = fgetcsv($csvFile);
+                            $total = 0;
+                            while(($csv_excel = fgets($csvFile)) !== FALSE){
+                                $total = $total + 1;
+                                $line = explode("#", $csv_excel);
+                                
+                                $nik      =  (isset($line[$line_nik])) ? $line[$line_nik] : null ; 
+                                $old_data = (isset($line[$line_old])) ? $line[$line_old] : null ;
+                                $new_data = (isset($line[$line_new])) ? $line[$line_new] : null ; 
 
+                                $nik = str_replace('"', '', $nik);
+                                $nik = trim(preg_replace('/\s\s+/', ' ', $nik));
+
+                                $old_data = str_replace('"', '', $old_data);
+                                $old_data = trim(preg_replace('/\s\s+/', ' ', $old_data));
+                                
+                                $new_data = str_replace('"', '', $new_data);
+                                $new_data = trim(preg_replace('/\s\s+/', ' ', $new_data));
+                                
+                                $insert = array(
+                                    'nik' => trim(preg_replace('/\s\s+/', ' ',$nik)),
+                                    'old_data' => trim(preg_replace('/\s\s+/', ' ',$old_data)),
+                                    'new_data' => trim(preg_replace('/\s\s+/', ' ',$new_data)),
+                                    'type' => $request->type,
+                                    'code' => $code
+                                );
+                                ChangeDataMonggoDB::create($insert);                               
+
+                            }
+                            $input['total']  = $total;
+                        }
+                        
+                    }                   
+                    //close opened csv file
+                    fclose($csvFile);
+        
+                    
+                } else {
+                    $data['code']    = 500;
+                    $data['message'] = "Tipe File Tidak Sesuai. Pastikan file bertipe csv";
+                }
+                
+            }
+            
+            $input['code']  = $code;
             $input['created_at'] = date('Y-m-d H:i:s');
             $input['updated_at'] = date('Y-m-d H:i:s');
-            $insert = DB::table('dpts')->insertGetId($input);
+            $insert = DB::table('t_change_datas')->insertGetId($input);
             if ($insert) {
-                $insert_class = DB::table('dpt_class_relations')->insert(['id_dpt'=>$insert,'id_class'=>$request->id_class,'tgl_masuk'=>$request->tgl_masuk,'description'=>'Siswa Baru','is_active'=>1,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')]);
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Menambah Data Siswa '.$request->dpt_name.'','siswa');
+                
                 $data['code']    = 200;
-                $data['message'] = 'Berhasil menambah data siswa';
+                $data['message'] = 'Berhasil menambah Ubah Data';
                 return response()->json($data);
             } else {
                 $data['code']    = 500;
                 $data['message'] = 'Maaf Ada yang Error ';
                 return response()->json($data);
             }
+
         } catch (\Exception $e) {
             $data['code']    = 500;
             $data['message'] = $e->getMessage();
             $data['line'] = $e->getLine();
-            $data['controller'] = 'DptController@post';
+            $data['controller'] = 'DptController@post_ubah_data';
             $insert_error = parent::InsertErrorSystem($data);
             return response()->json($data); // jika metode Post
         }
     }
 
-    public function update(Request $request)
+    public function data_detail_ubah(Request $request)
     {
-        try {
-        //dd($request->nik);
-            $input = $request->except('_token','id_scholl','id_class','tgl_masuk');
 
-            if ($request->file('image')) {
-                $input['image']  = parent::uploadFileS3($request->file('image'));
-            } 
-            $data['updated_at'] = date('Y-m-d H:i:s');
+        $totalData = ChangeDataMonggoDB::where('code',$request->code)->count();
+        $totalFiltered = $totalData;
+        $limit = $request->input('length');
+        $start = $request->input('start');
+        $dir   = $request->input('order.0.dir');
+        $search = $request->search;
+        $status = $request->status;
 
-            $insert = dptModel::where('id', $request->id)->update($input);
-            if ($insert) {
-                $cek_same_class = DB::table('dpt_class_relations')->where('id_dpt',$request->id)->where('is_active',1)->pluck('id_class');
-                if ($cek_same_class != $request->id_class) {
-                    $nonactive = DB::table('dpt_class_relations')->where('id_dpt',$request->id)->update(['is_active'=>0]);
-                    $insert_class = DB::table('dpt_class_relations')->insert(['id_dpt'=>$request->id,'id_class'=>$request->id_class,'tgl_masuk'=>$request->tgl_masuk,'description'=>'Pindah kelas','is_active'=>1,'created_at'=>date('Y-m-d H:i:s'),'updated_at'=>date('Y-m-d H:i:s')]);
-                }
-                $insert_log      = parent::LogAdmin(\Request::ip(),Auth::guard('admin')->user()->id,'Mengupdate Data Siswa '.$request->dpt_name.'','kelas');
-                $data['code']    = 200;
-                $data['message'] = 'Berhasil Mengupdate data kelas';
-                return response()->json($data);
-            } else {
-                $data['code']    = 500;
-                $data['message'] = 'Maaf Ada yang Error ';
-                $data['insert']  = $request->id;
-                return response()->json($data);
-            }
-        } catch (\Exception $e) {
-            $data['code']    = 500;
-            $data['message'] = $e->getMessage();
-            $data['line'] = $e->getLine();
-            $data['controller'] = 'DptController@update';
-            $insert_error = parent::InsertErrorSystem($data);
-            return response()->json($data); // jika metode Post
+        $posts = ChangeDataMonggoDB::where('code',$request->code);
+        if ($search != null) {
+            $posts = $posts->where(function ($query) use ($search,$request) {
+                $query->where('nik','ilike', "%{$search}%");
+                $query->orWhere('old_data','ilike', "%{$search}%");
+                $query->orWhere('new_data','ilike', "%{$search}%");
+            });
         }
-    }
 
-    public function detail($ids)
-    {
-        try {
-            $id = base64_decode($ids);
-            //dd($id);
-            $admin = dptModel::find($id);
-            //dd($admin);
-            
-            $data = parent::sidebar();
-            if ($admin == null) {
-                //dd("ID Tidak ditemukan");
-                return view('errors.not_found',$data);
+        $posts = $posts->select('*');
+        
+        $totalFiltered = $posts->count();
+        $posts = $posts->limit($limit)->offset($start)->get();
+
+        $data = array();
+        if (!empty($posts)) {
+            $no = $start;
+            foreach ($posts as $d) {
+                $no = $no + 1;
+
+                $column['no']       = $no;
+                $column['nik']      = $d->nik;
+                $column['old']      = $d->old_data;
+                $column['new']      = $d->new_data;
+                $data[]             = $column;
             }
-            //dd("masuk sini");
-            if ($data['access'] == 0) {
-                return redirect('/');
-            } else {
-                $role_id           = Auth::guard('admin')->user()->id_role;
-                $data['code']      = 200;
-                $data['data']      = $admin;
-                $data['data_role'] = RoleModel::whereNull('deleted_at')->where('status', 1)->get();
-                $data['data_scholl'] = SchollModel::whereNull('deleted_at')->get();
-                $data['data_city'] = CityModel::whereNull('deleted_at')->get();
-                $data['id_scholl'] = $this->GetScholl($admin->id,'id_scholl');
-                $data['id_class'] = $this->GetClass($admin->id,'id_class');
-                $data['tgl_masuk'] = $this->GetClass($admin->id,'tgl_masuk');
-                return view('dpt.dialog_edit', $data);
-            }
-        } catch (\Exception $e) {
-            $data['code']    = 500;
-            $data['message'] = $e->getMessage();
-            $data['line'] = $e->getLine();
-            $data['controller'] = 'DptController@detail';
-            $insert_error = parent::InsertErrorSystem($data);
-            $error = parent::sidebar();
-            $error['id'] = $insert_error;
-            return view('errors.500',$error); // jika Metode Get
-            //return response()->json($data); // jika metode Post
         }
-    }
 
+        $json_data = array(
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        );
+        echo json_encode($json_data);
+    }
     
-    public function download_pairing($coloumn){
-       
-        $data['data'] = TemporaryMonggoDB::select('*')->get()->toArray();
-        //dd($data['data']);
-        $data['coloumn'] = $coloumn;
-        $date = date('d F Y H:i'); 
-        TemporaryMonggoDB::whereNotNull('created_at')->delete();   
-
-        return Excel::download(new ExportPairingResults($data), 'Hasil Sanding Data '.$date.'.xlsx');
-    }
-
-
 }
