@@ -333,34 +333,45 @@ class RecapitulationsController extends Controller
 
     public function calculate(Request $request){
         try {
-            $village = DB::table('villages')->get();
+            $village = DB::table('districts')->select('id')->get();
             $clasification = DB::table('t_clasifications')->get();
             $triwulan = $request->triwulan;
             $year = $request->year;
             $group = date('YmdHis');
-            foreach ($village as $k => $v) {
+            $s_ktp = array('s','b');
+            $s_mariage = array('S','B','P');
+            $s_status = array('aktif','baru','tms','ubah','delete');
+            //dd($village);
+            foreach ($district as $k => $v) {
                 $t_male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->count();
                 $t_female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->count();
                 $total = (int)$t_male + (int)$t_female;
                 $update = DB::table('villages')->where('id',$v->id)->update(['male_dpt'=>$t_male,'female_dpt'=>$t_female,'total_dpt'=>$total]);
                 foreach ($clasification as $a => $b) {
-                    
-                    $male = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','L')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
-                    $female = DB::table('t_dpt')->whereNotIn('status',['tms','delete'])->where('gender','P')->where('id_village',$v->id)->where('age','>=',$b->min)->where('age','<',$b->max)->count();
-                    
-
-                    $insert_recaps = array(
-                        'id_village' => $v->id,
-                        'group' => $group,
-                        'id_clasification' => $b->id,
-                        'total_male' => $male,
-                        'total_female' => $female,
-                        'triwulan' => $triwulan,
-                        'year' => $year,                           
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s')
-                    );
-                    $id_recap = DB::table('t_recaps')->insertGetId($insert_recaps);  
+                    for ($k=0; $k < count($s_ktp); $k++) { 
+                        for ($m=0; $m < count($s_mariage); $m++) { 
+                            for ($s=0; $s < count($s_status); $s++) { 
+                                $male = DB::table('t_dpt')->where('id_village',$v->id)->where('status',$s_status[$s])->where('marriage_sts',$s_mariage[$m])->where('ektp',$s_ktp[$k])->where('gender','L')->where('age','>=',$b->min)->where('age','<',$b->max)->count();
+                                $female = DB::table('t_dpt')->where('id_village',$v->id)->where('status',$s_status[$s])->where('marriage_sts',$s_mariage[$m])->where('ektp',$s_ktp[$k])->where('gender','P')->where('age','>=',$b->min)->where('age','<',$b->max)->count();                   
+                                $insert_recaps = array(
+                                    'id_district' => $v->id,
+                                    'group' => $group,
+                                    'id_clasification' => $b->id,
+                                    's_mariage' => $s_mariage[$m],
+                                    's_ktp' => $s_ktp[$k],
+                                    's_status' => $s_status[$s],
+                                    'total_male' => $male,
+                                    'total_female' => $female,
+                                    'triwulan' => $triwulan,
+                                    'year' => $year,                           
+                                    'created_at' => date('Y-m-d H:i:s'),
+                                    'updated_at' => date('Y-m-d H:i:s')
+                                );
+                                $id_recap = DB::table('t_recaps')->insert($insert_recaps); 
+                            }
+                        }
+                    }
+                     
                 }
 
             }

@@ -17,7 +17,7 @@ class TotalRecapVillages extends Migration
         Schema::create('t_recaps', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('id_clasification')->nullable();
-            $table->bigInteger('id_village')->nullable();
+            $table->bigInteger('id_district')->nullable();
             $table->bigInteger('total_male')->nullable();
             $table->bigInteger('total_female')->nullable();
             $table->integer('triwulan')->nullable();

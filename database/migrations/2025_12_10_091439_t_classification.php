@@ -19,6 +19,7 @@ class TClassification extends Migration
             $table->string('name')->nullable();
             $table->integer('min')->nullable();
             $table->integer('max')->nullable();
+            $table->integer('csid')->nullable();
             $table->timestamps();
         });
         DB::statement('ALTER TABLE t_clasifications ALTER COLUMN id SET DEFAULT uuid_generate_v4();');

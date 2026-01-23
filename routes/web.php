@@ -16,13 +16,13 @@ Route::get('/login', function () {
     return view('login');
 })->name('login');
 
-Route::get('/dashboard', 'DashboardController@index')->middleware('auth:admin');
-Route::get('/', 'DashboardController@index')->middleware('auth:admin');
-Route::post('/get_dashboard', 'DashboardController@get_dashboard')->middleware('auth:admin');
+
+Route::get('/dashboard', 'DashboardController@dashboard')->middleware('auth:admin');
+Route::get('/', 'DashboardController@index');
+Route::post('/get_dashboard', 'DashboardController@get_dashboard');
 Route::post('/data_schedule_pasien_dasboard', 'DashboardController@dasboard_schedule')->middleware('auth:admin');
 Route::post('/login', 'Logincontroller@login');
-//dashboard
-Route::get('/dashboard', 'DashboardController@index')->middleware('auth:admin');
+
 // administrator
 Route::get('/administrator/list-admin','AdministratorController@index')->middleware('auth:admin');
 Route::post('/data_admin','AdministratorController@list_item')->middleware('auth:admin');
@@ -55,7 +55,7 @@ Route::post('/data_master_district','DistrictController@list_data')->middleware(
 Route::post('/active/District', 'DistrictController@active')->middleware('auth:admin');
 Route::post('/nonactive/District', 'DistrictController@nonactive')->middleware('auth:admin');
 Route::get('/master/district/{id}', 'DistrictController@detail')->middleware('auth:admin');
-Route::get('/get_village/{id}', 'DistrictController@get_village')->middleware('auth:admin');
+Route::get('/get_village/{id}', 'DistrictController@get_village');
 Route::post('/post_master_district','DistrictController@post')->middleware('auth:admin');
 Route::post('/update/master_district','DistrictController@update')->middleware('auth:admin');
 Route::post('/delete/District', 'DistrictController@delete')->middleware('auth:admin');

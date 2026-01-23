@@ -16,6 +16,7 @@ class AddTableDpt extends Migration
         DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
         Schema::create('t_dpt', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->bigInteger('id_district')->nullable();
             $table->bigInteger('id_village')->nullable();
             $table->string('village')->nullable();
             $table->bigInteger('dpid')->nullable();

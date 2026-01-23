@@ -27,6 +27,17 @@ class DashboardController extends Controller
 
     public function index()
     {
+        
+        $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
+        $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
+            // bisnis
+              
+        return view('index',$data);
+      
+    }
+
+    public function dashboard()
+    {
         $role_id = Auth::guard('admin')->user()->id_role;
         $data = parent::sidebar();
         $data['position_menu'] = "Dashboard";
@@ -52,7 +63,13 @@ class DashboardController extends Controller
 
     public function getDpt($request){
             
-        $dpt = DB::table('t_dpt as p')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id')->where(function ($query) use ($request) {
+        $dpt = DB::table('t_recaps as p')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id')->where(function ($query) use ($request) {
+            if ($request->triwulan != null) {
+                $query->where('p.triwulan',$request->triwulan);
+            } 
+            if ($request->year != null) {
+                $query->where('p.year',$request->year);
+            } 
             if ($request->id_kec != null) {
                 $query->where('c.id',$request->id_kec);
             } 
@@ -60,7 +77,7 @@ class DashboardController extends Controller
                 $query->where('v.id',$request->id_kel);
             } 
             if (isset($request->status)) {
-                $query->whereIn('p.status',$request->status);
+                $query->whereIn('p.s_status',$request->status);
             } 
         });
         return $dpt;
@@ -75,83 +92,10 @@ class DashboardController extends Controller
         
         $dpt = $this->getDpt($request);
 
-        $data['j_dpt']  = $dpt->select('gender')->count();
-        $data['j_dptl'] = $dpt->where('gender','L')->count();
-        $data['j_dptp'] = $data['j_dpt'] - $data['j_dptl'];
-        $data['gender_count'] = array($data['j_dptl'],$data['j_dptp']);
+        $data['j_dptp']  = $dpt->sum('total_female');
+        $data['j_dptl'] = $dpt->sum('total_male');
+        $data['j_dpt'] = $data['j_dptp'] + $data['j_dptl'];
         
-        dd($data);
-
-
-        
-
-
-        $data['j_teacher'] = DB::table('teachers as t')->join('teacher_scholl_relations as tsr','tsr.id_teacher','t.id')->where(function ($query) use ($id_scholl) {
-            if ($id_scholl != null) {
-                $query->where('tsr.id_scholl',$id_scholl);
-            } 
-        })->whereNull('t.deleted_at')->groupBy('tsr.id_teacher')->count();
-
-        // $data['j_mr'] = DB::table('medical_records')->whereYear('record_date',$year)->whereMonth('record_date',$month)->count();
-
-        $data['j_mr'] = DB::table('medical_records as m')->join('medical_categories as mc','mc.id','m.id_category')->join('students as st','st.id','m.id_student')->join('table_class as c','c.id','m.id_class')->where(function ($query) use ($id_scholl) {
-            if ($id_scholl != null) {
-                $query->where('c.id_scholl',$id_scholl);
-            } 
-        })->whereNull('m.deleted_at')->count();
-
-        //$data['category_medical_name'] = gatCategoryName($year,$month); sekolah
-        $array_medical_name = [];
-        $array_medical_color = [];
-        $this_month = "01"."-".$month."-".$year;
-        $t_month = [];
-        $x_month = [];
-        for ($i=0; $i < 31; $i++) { 
-            $t_month[] =  date('d', strtotime($this_month.'+'.$i.' days'));
-            $x_month[] =  date('Y-m-d', strtotime($this_month.'+'.$i.' days'));
-            //$this_month = $month;
-        }
-        $data['time'] = $t_month;
-        $graph = [];
-        $array_category = DB::table('medical_records')->whereYear('record_date',$year)->whereMonth('record_date',$month)->pluck('id_category')->toArray();
-        //dd($array_category);
-        $get_category = DB::table('medical_categories')->whereIn('id',$array_category)->where('status',1)->select('id','category_name','color')->orderBy('category_name','asc')->get();
-        foreach ($get_category as $k => $v) {
-            $array_medical_name[]  = "'".$v->category_name."'";
-            $array_medical_count[] = $this->gatCategoryCount($v->id,$year,$month,$id_scholl);
-            $array_medical_color[] = "'".$v->color."'";
-            $graph[] = [
-              'name' => $v->category_name,
-              'data' => $this->DataGraph($v->id,$x_month,$id_scholl)
-            ];
-        }
-        // for scholl 
-        $graph_school = [];
-        $get_scholl = SchollModel::whereNull('deleted_at')->get();
-        foreach ($get_scholl as $k => $v) {
-            $graph_school[] = [
-              'name' => $v->scholl_name,
-              'data' => $this->DataGraphScholl($v->id,$x_month)
-            ];
-        }
-
-        // for obat 
-        $graph_obat = [];
-        $array_medicine = DB::table('detail_medical_records as d')->whereYear('d.created_at',$year)->whereMonth('d.created_at',$month)->pluck('d.id_medicine')->toArray();
-        $get_obat = MedicineModel::whereIn('id',$array_medicine)->whereNull('deleted_at')->get();
-        foreach ($get_obat as $k => $v) {
-            $graph_obat[] = [
-              'name' => $v->medicine,
-              'data' => $this->DataGraphObat($v->id,$x_month)
-            ];
-        }
-
-        $data['category_medical_name']  = implode(', ', $array_medical_name);
-        $data['category_medical_count'] = implode(', ', $array_medical_count);
-        $data['category_medical_color'] = implode(', ', $array_medical_color);
-        $data['data_graph'] = $graph;
-        $data['data_graph_scholl'] = $graph_school;
-        $data['data_graph_obat'] = $graph_obat;
         //dd($datax);
         return view('data_dashboard',$data);
 
