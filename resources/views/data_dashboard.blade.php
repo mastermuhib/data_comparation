@@ -128,12 +128,12 @@ var KTApexChartsDemo = function () {
     var _demo1 = function () {
 		const apexChart = "#chart_1";
 		var options = {
-			series: [44, 55, 13, 43, 22],
+			series: [<?php echo($klasifikasi_series); ?>],
 			chart: {
 				width: 380,
 				type: 'pie',
 			},
-			labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
+			labels: [<?php echo($klasifikasi_name); ?>],
 			responsive: [{
 				breakpoint: 480,
 				options: {

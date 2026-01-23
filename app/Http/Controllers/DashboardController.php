@@ -63,7 +63,7 @@ class DashboardController extends Controller
 
     public function getDpt($request){
             
-        $dpt = DB::table('t_recaps as p')->leftJoin('villages as v','v.id','p.id_village')->leftJoin('districts as c','c.id','v.district_id')->where(function ($query) use ($request) {
+        $dpt = DB::table('t_recaps as p')->leftJoin('districts as c','c.id','p.id_district')->where(function ($query) use ($request) {
             if ($request->triwulan != null) {
                 $query->where('p.triwulan',$request->triwulan);
             } 
@@ -73,9 +73,7 @@ class DashboardController extends Controller
             if ($request->id_kec != null) {
                 $query->where('c.id',$request->id_kec);
             } 
-            if ($request->id_kel != null) {
-                $query->where('v.id',$request->id_kel);
-            } 
+            
             if (isset($request->status)) {
                 $query->whereIn('p.s_status',$request->status);
             } 
@@ -85,9 +83,10 @@ class DashboardController extends Controller
 
     public function get_dashboard(Request $request){
 
-        $data['all'] = 1;
-        $month = date('m',strtotime($request->periode));
-        $year  = date('Y',strtotime($request->periode));
+        $year      = $request->year;
+        $triwulan  = $request->triwulan;
+        $status    = $request->status; 
+        $kec       = $request->id_kec;
         $array_gender_count = [];
         
         $dpt = $this->getDpt($request);
@@ -95,79 +94,84 @@ class DashboardController extends Controller
         $data['j_dptp']  = $dpt->sum('total_female');
         $data['j_dptl'] = $dpt->sum('total_male');
         $data['j_dpt'] = $data['j_dptp'] + $data['j_dptl'];
+
+        $array_klasifikasi = [];
+        $graph_klasifikasi = [];
+        $array_series_klasifikasi = [];
+        $array_disabilitas = [];
+        $array_series_disabilitas = [];
+        $array_mariage = [];
+        $array_series_mariage = [];
+        $array_ektp = [];
+        $array_series_ektp = [];
+        $l_ektp = array("Sudah","Belum");
+        $l_mariage = array("Sudah","Belum","Pernah");
         
-        //dd($datax);
+        $klasifikasi = DB::table('t_clasifications')->select('id','name')->orderBy('csid','asc')->get();
+        $id_klasifikasi = DB::table('t_clasifications')->orderBy('csid','asc')->pluck('id')->toArray();
+        
+        $disabilitas = DB::table('t_dissability')->select('id','name')->orderBy('id','asc')->get();
+        foreach ($klasifikasi as $k => $v) {
+            $array_klasifikasi[]  = "'".$v->name."'";
+            $dpt1 = $this->getDpt($request);
+            $jumlah = $dpt1->where('id_clasification',$v->id)->sum('total');
+            $array_series_klasifikasi[] = (int)$jumlah;
+        }
+        $graph_klasifikasi[] = [
+          'name' => 'LK',
+          'data' => $this->DataGraph($id_klasifikasi,'total_male',$year,$triwulan,$kec,$status)
+        ];
+
+        $graph_klasifikasi[] = [
+          'name' => 'PR',
+          'data' => $this->DataGraph($id_klasifikasi,'total_female',$year,$triwulan,$kec,$status)
+        ];
+       
+        $data['klasifikasi']  = $array_klasifikasi;
+        $data['klasifikasi_name']  = implode(', ', $array_klasifikasi);
+        $data['klasifikasi_series'] = implode(', ', $array_series_klasifikasi);
+        // $data['disabilitas_name']  = implode(', ', $array_disabilitas);
+        // $data['disabilitas_series'] = implode(', ', $array_series_disabilitas);
+        // $data['mariage_name']  = implode(', ', $array_mariage);
+        // $data['mariage_series'] = implode(', ', $array_series_mariage);
+        // $data['ektp_name']  = implode(', ', $array_ektp);
+        // $data['ektp_series'] = implode(', ', $array_series_ektp);
+        $data['data_graph'] = $graph_klasifikasi;
+        
+            
+        //dd($data);
         return view('data_dashboard',$data);
 
     }
 
-    public function DataGraph($id,$month,$id_scholl){
-        $var = [];
-        for ($i=0; $i < count($month); $i++) { 
-            // $var[] = DB::table('medical_records')->where('id_category',$id)->whereDate('record_date','=',$month[$i])->count();
-            $var[] = DB::table('medical_records as m')->join('medical_categories as mc','mc.id','m.id_category')->join('students as st','st.id','m.id_student')->join('table_class as c','c.id','m.id_class')->where(function ($query) use ($id_scholl) {
-                if ($id_scholl != null) {
-                    $query->where('c.id_scholl',$id_scholl);
-                } 
-            })->where('m.id_category',$id)->whereDate('record_date','=',$month[$i])->whereNull('m.deleted_at')->count();
-        }
-        return $var;
-    }
-
-    public function DataGraphObat($id,$month){
-        $var = [];
-        for ($i=0; $i < count($month); $i++) { 
-            $var[] = DB::table('detail_medical_records as d')
-                    ->join('medical_records as m','m.id','d.id_medical_record')
-                    ->join('medical_categories as mc','mc.id','m.id_category')
-                    ->join('students as st','st.id','m.id_student')
-                    ->join('table_class as c','c.id','m.id_class')
-                    ->join('table_scholls as s','s.id','c.id_scholl')
-                    ->leftJoin('administrators as a','a.id','m.id_admin')
-                    ->whereNull('m.deleted_at')
-                    ->where('d.id_medicine',$id)
-                    ->whereDate('d.created_at','=',$month[$i])
-                    ->sum('dosis');
-            // DB::table('table_medicines as tm')
-            //         ->join('detail_medical_records as dmr','dmr.id_medicine','tm.id')
-            //         ->where('dmr.id_medicine',$id)
-            //         ->whereDate('dmr.created_at','=',$month[$i])
-            //         ->whereNull('tm.deleted_at')
-            //         ->count();
-        }
-        return $var;
-    }
-
-    public function DataGraphScholl($id,$month){
-        $var = [];
-        for ($i=0; $i < count($month); $i++) { 
-            // $var[] = DB::table('medical_records')->where('id_category',$id)->whereDate('record_date','=',$month[$i])->count();
-            $var[] = DB::table('medical_records as m')
-                    ->join('medical_categories as mc','mc.id','m.id_category')
-                    ->join('students as st','st.id','m.id_student')
-                    ->join('table_class as c','c.id','m.id_class')
-                    ->where('c.id_scholl',$id)
-                    ->whereDate('record_date','=',$month[$i])
-                    ->whereNull('m.deleted_at')
-                    ->count();
-        }
-        return $var;
-    }
-
-
-    public function gatCategoryCount($id,$year,$month, $id_scholl){
-        $return = DB::table('medical_records')->where('id_category',$id)->whereYear('record_date',$year)->whereMonth('record_date',$month)->count();
-        return (int)$return;
-
-        // $return = DB::table('medical_records as m')->where('m.id_category',$id)->whereYear('record_date',$year)->whereMonth('record_date',$month)->join('medical_categories as mc','mc.id','m.id_category')->join('students as st','st.id','m.id_student')->join('table_class as c','c.id','m.id_class')->where(function ($query) use ($id_scholl) {
-        //     if ($id_scholl != null) {
-        //         $query->where('c.id_scholl',$id_scholl);
-        //     } 
-        // })->whereNull('m.deleted_at')->count();
-        // return (int)$return;
-    }
-
     
+
+    public function DataGraph($array,$coloumn,$year,$triwulan,$kec,$status){
+        $var = [];
+        for ($i=0; $i < count($array); $i++) { 
+            $dpt = DB::table('t_recaps as p')->leftJoin('districts as c','c.id','p.id_district')->where('id_clasification',$array[$i])->where(function ($query) use ($year,$triwulan,$kec,$status) {
+                if ($triwulan != null) {
+                    $query->where('p.triwulan',$triwulan);
+                } 
+                if ($year != null) {
+                    $query->where('p.year',$year);
+                } 
+                if ($kec != null) {
+                    $query->where('c.id',$kec);
+                } 
+                
+                if (isset($status)) {
+                    $query->whereIn('p.s_status',$status);
+                } 
+            });
+            $dpt = $dpt->sum($coloumn);
+            $var[] = (int)$dpt;
+            
+        }
+        return $var;
+    }
+
+        
     public function getJumlah($date)
     {
         $jumlah = DB::table('transactions')

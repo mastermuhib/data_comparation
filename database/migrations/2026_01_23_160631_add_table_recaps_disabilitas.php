@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class TotalRecapVillages extends Migration
+class AddTableRecapsDisabilitas extends Migration
 {
     /**
      * Run the migrations.
@@ -14,9 +14,9 @@ class TotalRecapVillages extends Migration
     public function up()
     {
         DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-        Schema::create('t_recaps', function (Blueprint $table) {
+        Schema::create('t_recap_dis', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('id_clasification')->nullable();
+            $table->integer('id_disability')->nullable();
             $table->bigInteger('id_district')->nullable();
             $table->string('s_mariage')->nullable();
             $table->string('s_status')->nullable();
@@ -27,7 +27,7 @@ class TotalRecapVillages extends Migration
             $table->integer('year')->nullable();
             $table->timestamps();
         });
-        DB::statement('ALTER TABLE t_recaps ALTER COLUMN id SET DEFAULT uuid_generate_v4();');
+        DB::statement('ALTER TABLE t_recap_dis ALTER COLUMN id SET DEFAULT uuid_generate_v4();');
     }
 
     /**
@@ -37,6 +37,6 @@ class TotalRecapVillages extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('t_recaps');
+        Schema::dropIfExists('t_recap_dis');
     }
 }
