@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 
-class ExportRecapResults implements FromView, ShouldAutoSize
+class ExportRecapDisResults implements FromView, ShouldAutoSize
 {
     protected $data;
 
@@ -23,7 +23,7 @@ class ExportRecapResults implements FromView, ShouldAutoSize
 
     public function view(): View
     {
-        return view('recapitulation_result', $this->data);
+        return view('recapitulation_dis_result', $this->data);
     }
 }
 

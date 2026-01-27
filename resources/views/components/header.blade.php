@@ -12,19 +12,7 @@
                     <input type="hidden" name="is_edit" id="is_edit" value="{{ $akses->is_edit }}">
                     <input type="hidden" name="is_delete" id="is_delete" value="{{ $akses->is_delete }}">
                     <div>
-                        @if(isset($header_name))
-                        <h2 class="mt-3">{!! $header_name !!}
-                            @if($akses->is_add == 1)
-                                @if(isset($href))
-                                <a href="/{{$href}}"><button class="btn btn-sm btn-success ml-5"><i class="fas fa-plus"></i> {{$txt_button}}</button></a>
-                                   @if($txt_button == 'Tambah Siswa Baru')
-                                   <a href="/user/siswa/action/import"><button class="btn btn-sm btn-success ml-2"><i class="fas fa-excel"></i> Import Data Siswa</button></a>
-                                   @endif
-                                @endif
-                            @endif
-                        </h2>
-                       
-                        @endif
+                        
                     </div>
                     @if(Request::is('dashboard'))
                     <div style="margin-left: 150px; margin-top: 10px;">

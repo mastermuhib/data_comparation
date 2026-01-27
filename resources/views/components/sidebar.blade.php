@@ -7,22 +7,11 @@
 @endif
 @if($v->number == 3)
 <li class="menu-section pl-3">
-    <h6 class="menu-text">User</h6>
+    <h6 class="menu-text">DPT</h6>
 </li>
 
 @endif
-@if($v->number == 4)
-<li class="menu-section pl-3">
-    <h6 class="menu-text">Medical record</h6>
-</li>
 
-@endif
-@if($v->number == 5)
-<li class="menu-section pl-3">
-    <h6 class="menu-text">Notifikasi</h6>
-</li>
-
-@endif
 @if($v->number == 6)
 <li class="menu-section pl-3">
     <h6 class="menu-text">Lainya</h6>

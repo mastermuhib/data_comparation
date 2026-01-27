@@ -20,6 +20,7 @@ Route::get('/login', function () {
 Route::get('/dashboard', 'DashboardController@dashboard')->middleware('auth:admin');
 Route::get('/', 'DashboardController@index');
 Route::post('/get_dashboard', 'DashboardController@get_dashboard');
+Route::get('/get_triwulan/{id}', 'DashboardController@get_triwulan');
 Route::post('/data_schedule_pasien_dasboard', 'DashboardController@dasboard_schedule')->middleware('auth:admin');
 Route::post('/login', 'Logincontroller@login');
 
@@ -141,19 +142,20 @@ Route::get('/sanding-data/data-meninggal','PairingDptController@die')->middlewar
 Route::post('/post_pairing_die','PairingDptController@post_pairing_die')->middleware('auth:admin');
 Route::get('/dpt/download_pairing_die/{coloumn}','PairingDptController@download_pairing_die')->middleware('auth:admin');
 
-//rekapitulasi/list-rekap
-Route::get('/rekapitulasi/list-rekap','RecapitulationsController@index')->middleware('auth:admin');
-Route::get('/rekapitulasi/kecamatan','RecapitulationsController@district')->middleware('auth:admin');
-Route::get('/rekapitulasi/desa','RecapitulationsController@village')->middleware('auth:admin');
-Route::post('/rekapitulasi/data_recap','RecapitulationsController@list_recap')->middleware('auth:admin');
-Route::post('/rekapitulasi/data_village','RecapitulationsController@list_village')->middleware('auth:admin');
-Route::post('/rekapitulasi/data_district','RecapitulationsController@list_district')->middleware('auth:admin');
-Route::post('/rekapitulasi/calculate','RecapitulationsController@calculate')->middleware('auth:admin');
+//rekapitulasi/klasifikasi
+Route::get('/rekapitulasi/klasifikasi','RecapitulationsController@index')->middleware('auth:admin');
+Route::post('/rekapitulasi/data_klasifikasi','RecapitulationsController@list')->middleware('auth:admin');
+Route::post('/rekapitulasi/klasifikasi/calculate','RecapitulationsController@calculate')->middleware('auth:admin');
+
+//rekapitulasi/disabilitas
+Route::get('/rekapitulasi/disabilitas','RecapitulationsDisController@index')->middleware('auth:admin');
+Route::post('/rekapitulasi/data_disabilitas','RecapitulationsDisController@list')->middleware('auth:admin');
+Route::post('/rekapitulasi/disabilitas/calculate','RecapitulationsDisController@calculate')->middleware('auth:admin');
 
 //download recapitulation
 Route::get('/download_rekapitulasi/excel/{arr}','DownloadRecapitulationsController@excelRecap')->middleware('auth:admin');
-Route::get('/download_rekapitulasi_kecamatan/excel/{arr}','DownloadRecapitulationsController@excelDistrict')->middleware('auth:admin');
-Route::get('/download_rekapitulasi_desa/excel/{arr}','DownloadRecapitulationsController@excelVillage')->middleware('auth:admin');
+Route::get('/download_rekapitulasi_klasifikasi/excel/{arr}','DownloadRecapitulationsController@excelKlasifikasi')->middleware('auth:admin');
+Route::get('/download_rekapitulasi_disabilitas/excel/{arr}','DownloadRecapitulationsController@excelDisabilitas')->middleware('auth:admin');
 
 //download recapitulation
 Route::get('/dpt/download-dpt','DownloadDPTController@index')->middleware('auth:admin');

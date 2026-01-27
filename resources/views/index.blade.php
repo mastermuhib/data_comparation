@@ -110,7 +110,7 @@
                     <div class="row" data-select2-id="4">
                         <div class="col-md-3">
                             <label>Kecamatan</label>
-                            <select class="select2 select2-lg form-control" onchange="ChangeKec()" id="id_kec" name="id_kec">
+                            <select class="select2 select2-lg form-control" onchange="ChangeDashboard()" id="id_kec" name="id_kec">
                                 <option value="">Semua</option>
                                 @foreach($data_kec as $ct)
                                 <option value="{{$ct->id}}">{{$ct->name}}</option>
@@ -118,11 +118,14 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label>Desa</label>
-                            <select class="select2 form-control" onchange="ChangeDashboard()" id="id_kel" name="id_kel">
-                                <option value="">Semua Desa</option>
-                                
+                            <label>Triwulan</label>
+                            <select class="select2 form-control" onchange="ChangeTriwulan()" id="id_triwulan" name="id_triwulan">
+                                @foreach($triwulan as $ct)
+                                <option value="{{$ct->id}}">{{$ct->name}}</option>
+                                @endforeach
                             </select>
+                            <input type="hidden" name="triwulan" value="{{ $triwulan[0]->triwulan }}" id="triwulan">
+                            <input type="hidden" name="year" value="{{ $triwulan[0]->year }}" id="year">
                         </div>
                         
                         <div class="col-md-6">
@@ -179,21 +182,18 @@ $(document).off('click', '#FilterDash').on('click', '#FilterDash', function() {
     ChangeDashboard();
 });
 
-function ChangeKec(){
+function ChangeTriwulan(){
 
-    id = $("#id_kec").val();
+    id = $("#id_triwulan").val();
     if (id != '' || id != null) {
         $.ajax({
             type: 'GET',
-            url: '/get_village/'+id,
+            url: '/get_triwulan/'+id,
             dataType: 'json',
             success: function(data) {
                 console.log(data)
-                $("#id_kel").empty();
-                $("#id_kel").append("<option value=''>Semua Desa</option>");
-                for (let i = 0; i < data.length; i++) {
-                    $("#id_kel").append("<option value=" + data[i].id + ">" + data[i].name + "</option>");
-                }
+                $("#triwulan").val(data.triwulan);
+                $("#year").val(data.year);
                 ChangeDashboard();
             },
             error: function(data) {
@@ -213,7 +213,6 @@ function ChangeDashboard(){
     $('#loading').css('display','');
     $('#isi_html').css('display','none');
     var id_kec     = $("#id_kec").val();
-    var id_kel     = $("#id_kel").val();
     var triwulan     = $("#triwulan").val();
     var year     = $("#year").val();
     var status = $("#status").val();
@@ -226,7 +225,7 @@ function ChangeDashboard(){
     $.ajax({ //line 28
         type    : 'POST',
         url     : '/get_dashboard',
-        data    : { id_kel:id_kel,id_kec:id_kec,year:year,triwulan:triwulan,status:status },
+        data    : { id_kec:id_kec,year:year,triwulan:triwulan,status:status },
         dataType: 'html',
         success: function(data) {
             //alert("cuuk");

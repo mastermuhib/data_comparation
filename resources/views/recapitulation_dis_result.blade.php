@@ -5,14 +5,13 @@
         <table class='table table-bordered mr-4'>
             <thead>
                 <tr>
-                    <th colspan="6" style="font-weight: bolder;font-size: 20px;text-align: center;">Hasil Klasifikasi Usia DPT Kabupaten Bojonegoro Per Desa Triwulan {{$triwulan}} {{$year}}</th>
+                    <th colspan="6" style="font-weight: bolder;font-size: 20px;text-align: center;">Hasil Rekapitulasi Disabilitas DPT Kabupaten Bojonegoro Per Desa Triwulan {{$triwulan}} {{$year}}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>Kecamatan</td>
-                    <td>Desa</td>
-                    <td>Klasifikasi</td>
+                    <td>Jenis</td>
                     <td>Laki - Laki</td>
                     <td>Perempuan</td>
                     <td>Total</td>
@@ -20,7 +19,7 @@
                 @foreach($data as $k=>$v)
                 <tr>
                     <td> {{ $v->kecamatan }}</td>
-                    <td> {{ $v->klasifikasi }}</td>
+                    <td> {{ $v->disabilitas }}</td>
                     <td> {{ $v->male }}</td>
                     <td> {{ $v->female }}</td>
                     <td> {{ $v->total }}</td>

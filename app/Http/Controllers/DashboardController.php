@@ -30,6 +30,7 @@ class DashboardController extends Controller
         
         $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
         $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
+        $data['triwulan'] = DB::table('t_steps')->select('id','name','is_active','triwulan','year')->orderBy('is_active','desc')->get();
             // bisnis
               
         return view('index',$data);
@@ -55,10 +56,18 @@ class DashboardController extends Controller
             // $data['header_name'] = '<span>Dashboard</span> <input type="month" id="bdaymonth" name="bdaymonth" class="form-control ml-40" onchange="ChangeDashboard()" value="'.date('Y-m').'" style="margin-top: -30px;">';
             $data['data_kec'] = DistrictModel::whereNull('deleted_at')->select('id','name')->get();
             $data['data_klasifikasi'] = KlasifikasiModel::select('id','name')->get();
+            $data['triwulan'] = DB::table('t_steps')->select('id','name','is_active','triwulan','year')->orderBy('is_active','desc')->get();
             // bisnis
               
         return view('dashboard',$data);
       }
+    }
+
+    public function get_triwulan($id)
+    {
+        $data = DB::table('t_steps')->where('id', $id)->select('triwulan','year')->first();
+
+        echo json_encode($data);
     }
 
     public function getDpt($request){

@@ -19,6 +19,10 @@ class AddTableSteps extends Migration
             $table->string('name')->nullable();
             $table->tinyInteger('month')->nullable();
             $table->integer('year')->nullable();
+            $table->integer('triwulan')->nullable();
+            $table->tinyInteger('is_active')->default(1);
+            $table->tinyInteger('is_klasifikasi')->default(0);
+            $table->tinyInteger('is_disabilitas')->default(0);
             $table->timestamps();
         });
         DB::statement('ALTER TABLE t_steps ALTER COLUMN id SET DEFAULT uuid_generate_v4();');

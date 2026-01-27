@@ -18,11 +18,13 @@ class TotalRecapVillages extends Migration
             $table->uuid('id')->primary();
             $table->uuid('id_clasification')->nullable();
             $table->bigInteger('id_district')->nullable();
+            $table->string('group')->nullable();
             $table->string('s_mariage')->nullable();
             $table->string('s_status')->nullable();
             $table->string('s_ktp')->nullable();
             $table->bigInteger('total_male')->nullable();
             $table->bigInteger('total_female')->nullable();
+            $table->bigInteger('total')->nullable();
             $table->integer('triwulan')->nullable();
             $table->integer('year')->nullable();
             $table->timestamps();
