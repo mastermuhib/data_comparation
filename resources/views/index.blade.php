@@ -233,6 +233,31 @@ function ChangeDashboard(){
             $('#isi_html').css('display','');
             $("#isi_html").html(data);
             $('#loading').css('display','none');
+            ChangeTableDashboard()
+        }
+    });
+}
+
+function ChangeTableDashboard(){
+  //if(is_admin != 2) {
+    
+    var id_kec     = $("#id_kec").val();
+    var triwulan     = $("#triwulan").val();
+    var year     = $("#year").val();
+    var status = $("#status").val();
+    
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    $.ajax({ //line 28
+        type    : 'POST',
+        url     : '/get_table_dashboard',
+        data    : { id_kec:id_kec,year:year,triwulan:triwulan,status:status },
+        dataType: 'html',
+        success: function(data) {
+            $("#isi_table_html").html(data);
         }
     });
 }

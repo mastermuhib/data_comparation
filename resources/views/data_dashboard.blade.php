@@ -1,3 +1,11 @@
+<style>
+	.table td, .table th {
+		padding: .75rem;
+		vertical-align: middle;
+		border-top: 1px solid #dee2e6;
+		text-align: center;
+	}
+</style>
 <div class="row">
 	<div class="col-sm-4 col-6">
 		<!--begin::Stats Widget 13-->
@@ -55,6 +63,41 @@
 <div class="row">
 	<div class="col-md-6">
 		<!--begin::Card-->
+		<div class="card card-custom gutter-b">
+			<div class="text-center">
+				<div class="card-title">
+					<h3 class="card-label mt-5">Status Pernikahan</h3>
+				</div>
+			</div>
+			<div class="card-body">
+				<!--begin::Chart-->
+				
+				<div id="chart_5" class="d-flex justify-content-center"></div>
+				<!--end::Chart-->
+			</div>
+		</div>
+		<!--end::Card-->
+	</div>
+	<div class="col-md-6">
+		<!--begin::Card-->
+		<div class="card card-custom gutter-b">
+			<div class="text-center">
+				<div class="card-title">
+					<h3 class="card-label mt-5">Status E-KTP</h3>
+				</div>
+			</div>
+			<div class="card-body">
+				<!--begin::Chart-->
+				<div id="chart_6" class="d-flex justify-content-center"></div>
+				<!--end::Chart-->
+			</div>
+		</div>
+		<!--end::Card-->
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-6">
+		<!--begin::Card-->
 		<div  class="card card-custom card-stretch gutter-b">
 			<div class="text-center">
 				<div class="card-title">
@@ -77,7 +120,7 @@
                                 <tr>
                                     <th></th>
                                     @for($k=0;$k < count($klasifikasi);$k++)
-                                    <th>{{ $klasifikasi[$k] }}</th>
+                                    <th>{{ str_replace("'", "",$klasifikasi[$k]) }}</th>
                                     @endfor
                                 </tr>
                             </thead>
@@ -90,6 +133,14 @@
                                     @endfor
                             	</tr>
                             	@endfor
+                            	<tr>
+                            		<td>
+                            			<b>Total</b>
+                            		</td>
+                            		@for($b=0;$b < count($prosentase_klasifikasi);$b++)
+                                    <td>{{ number_format($prosentase_klasifikasi[$b]['total']) }} <b class="ml-1">({{ number_format($prosentase_klasifikasi[$b]['prosentase'],2) }}%)</b></td>
+                                    @endfor
+                            	</tr>
                             </tbody>
                         </table>
                     </div>
@@ -122,7 +173,7 @@
                                 <tr>
                                     <th></th>
                                     @for($k=0;$k < count($disabilitas);$k++)
-                                    <th>{{ $disabilitas[$k] }}</th>
+                                    <th>{{ str_replace("'", "",$disabilitas[$k]) }}</th>
                                     @endfor
                                 </tr>
                             </thead>
@@ -135,6 +186,14 @@
                                     @endfor
                             	</tr>
                             	@endfor
+                            	<tr>
+                            		<td>
+                            			<b>Total</b>
+                            		</td>
+                            		@for($b=0;$b < count($prosentase_disabilitas);$b++)
+                                    <td>{{ number_format($prosentase_disabilitas[$b]['total']) }} <b class="ml-1">({{ number_format($prosentase_disabilitas[$b]['prosentase'],2) }}%)</b></td>
+                                    @endfor
+                            	</tr>
                             </tbody>
                         </table>
                     </div>
@@ -144,39 +203,7 @@
 		<!--end::Card-->
 	</div>
 </div>
-<div class="row">
-	<div class="col-md-6">
-		<!--begin::Card-->
-		<div class="card card-custom gutter-b">
-			<div class="text-center">
-				<div class="card-title">
-					<h3 class="card-label mt-5">Klasifikasi Status Pernikahan</h3>
-				</div>
-			</div>
-			<div class="card-body">
-				<!--begin::Chart-->
-				<canvas id="chart_5"></canvas>
-				<!--end::Chart-->
-			</div>
-		</div>
-		<!--end::Card-->
-	</div>
-	<div class="col-md-6">
-		<!--begin::Card-->
-		<div class="card card-custom gutter-b">
-			<div class="text-center">
-				<div class="card-title">
-					<h3 class="card-label mt-5">Klasifikasi E-KTP</h3>
-				</div>
-			</div>
-			<div class="card-body">
-				<!--begin::Chart-->
-				<canvas id="chart_6"></canvas>
-				<!--end::Chart-->
-			</div>
-		</div>
-		<!--end::Card-->
-	</div>
+<div class="row" id="isi_table_html">
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -330,6 +357,59 @@ var KTApexChartsDemo = function () {
 			var chart = new ApexCharts(document.querySelector(apexChart), options);
 			chart.render();
 		}
+
+		var _demo6 = function () {
+			const apexChart = "#chart_6";
+			var options = {
+				series: [<?php echo($ektp_series); ?>],
+				chart: {
+					width: 380,
+					type: 'pie',
+				},
+				labels: [<?php echo($ektp_name); ?>],
+				responsive: [{
+					breakpoint: 480,
+					options: {
+						chart: {
+							width: 200
+						},
+						legend: {
+							position: 'bottom'
+						}
+					}
+				}],
+				colors: [success,danger]
+			};
+
+			var chart = new ApexCharts(document.querySelector(apexChart), options);
+			chart.render();
+		}
+		var _demo5 = function () {
+			const apexChart = "#chart_5";
+			var options = {
+				series: [<?php echo($mariage_series); ?>],
+				chart: {
+					width: 380,
+					type: 'donut',
+				},
+				labels: [<?php echo($mariage_name); ?>],
+				responsive: [{
+					breakpoint: 480,
+					options: {
+						chart: {
+							width: 200
+						},
+						legend: {
+							position: 'bottom'
+						}
+					}
+				}],
+				colors: [success,danger,warning]
+			};
+
+			var chart = new ApexCharts(document.querySelector(apexChart), options);
+			chart.render();
+		}
     return {
 		// public functions
 		init: function () {
@@ -337,6 +417,8 @@ var KTApexChartsDemo = function () {
 			_demo2();
 			_demo3();
 			_demo4();
+			_demo5();
+			_demo6();
 		}
 	};
 }();

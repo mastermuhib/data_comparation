@@ -20,6 +20,7 @@ Route::get('/login', function () {
 Route::get('/dashboard', 'DashboardController@dashboard')->middleware('auth:admin');
 Route::get('/', 'DashboardController@index');
 Route::post('/get_dashboard', 'DashboardController@get_dashboard');
+Route::post('/get_table_dashboard', 'DashboardController@get_table_dashboard');
 Route::get('/get_triwulan/{id}', 'DashboardController@get_triwulan');
 Route::post('/data_schedule_pasien_dasboard', 'DashboardController@dasboard_schedule')->middleware('auth:admin');
 Route::post('/login', 'Logincontroller@login');
