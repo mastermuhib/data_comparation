@@ -10,7 +10,7 @@ use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 class Tabel1DBModel extends Eloquent
 {
 	protected $connection = 'monggo_con';
-	protected $collection = 'temporary';
+	protected $collection = 'table1';
     //ClickAdsMonggoDB
 
     /**

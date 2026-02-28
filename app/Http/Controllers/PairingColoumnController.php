@@ -59,11 +59,12 @@ class PairingColoumnController extends Controller
             if(empty($_FILES['file1']['name'])) {
                 $data['code']    = 500;
                 $data['message'] = "File Kosong";
+                return response()->json($data);
             } else {
                 if(in_array($_FILES['file1']['type'],$csvMimes)){
                     if(is_uploaded_file($_FILES['file1']['tmp_name'])){ 
                         // check file size
-                        if(filesize($_FILES['file']['tmp_name']) > 51200000000000000) {
+                        if(filesize($_FILES['file1']['tmp_name']) > 51200000000000000) {
                             $data['code']    = 500;
                             $data['message'] = "File Maksimal 500 Mb";
                         } else {
@@ -90,14 +91,7 @@ class PairingColoumnController extends Controller
                                     // }
                                     $array['col'.$i] = $clean;
                                 }
-                                $nik = str_replace('"', '', $line[$nik1]);
-                                //dd($nik);
-                                // $check = DB::table('t_dpt')->where('nik',$nik)->whereNotIn('status',['tms','delete'])->count();
-                                // if ($check > 0) {
-                                //     $status = "Ada di Sidalih";
-                                // }
-
-                                // $array['col'.$count] = $status;
+                                                                
                                 Tabel1DBModel::create($array);                         
 
                             }
@@ -105,8 +99,16 @@ class PairingColoumnController extends Controller
                         
                     }                   
                     //close opened csv file
-                    fclose($csvFile1);
+                    fclose($csvFile1);                     
+                            
+                    
+                } else {
+                    $data['code']    = 500;
+                    $data['message'] = "Tipe File Tidak Sesuai. Pastikan file bertipe csv";
+                    return response()->json($data);
+                }
 
+                if(in_array($_FILES['file1']['type'],$csvMimes)){
                     //pairing function
                     if(is_uploaded_file($_FILES['file2']['tmp_name'])){ 
                         // check file size
@@ -150,17 +152,18 @@ class PairingColoumnController extends Controller
                             }
                         }
                         
-                    }                   
+                    } 
                     //close opened csv file
-                    fclose($csvFile2);
-        
-                    $data['code']    = 200;
-                    $data['page']  = (int)$page;
-                    $data['message'] = "Berhasil Mengimport Data DPT";
+                    fclose($csvFile2);   
+
                 } else {
                     $data['code']    = 500;
                     $data['message'] = "Tipe File Tidak Sesuai. Pastikan file bertipe csv";
+                    return response()->json($data);
                 }
+                $data['code']    = 200;
+                $data['page']  = (int)$page;
+                $data['message'] = "Berhasil Mengimport Data DPT";
                 return response()->json($data);
             }
         } catch (\Exception $e) {
