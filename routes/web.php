@@ -142,6 +142,10 @@ Route::get('/dpt/download_pairing/{coloumn}','PairingDptController@download_pair
 Route::get('/sanding-data/data-meninggal','PairingDptController@die')->middleware('auth:admin');
 Route::post('/post_pairing_die','PairingDptController@post_pairing_die')->middleware('auth:admin');
 Route::get('/dpt/download_pairing_die/{coloumn}','PairingDptController@download_pairing_die')->middleware('auth:admin');
+//pairing dua tabel
+Route::get('/sanding-data/banding-data','PairingColoumnController@pairing')->middleware('auth:admin');
+Route::post('/post_banding_dpt','PairingColoumnController@post')->middleware('auth:admin');
+Route::get('/download_banding/{coloumn}','PairingColoumnController@download')->middleware('auth:admin');
 
 //rekapitulasi/klasifikasi
 Route::get('/rekapitulasi/klasifikasi','RecapitulationsController@index')->middleware('auth:admin');
